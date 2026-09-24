@@ -2749,7 +2749,7 @@
   "EPC-IPU-I608-04": {
    "seller": "Organic",
    "comune": "Senigallia",
-   "bu": "North West",
+   "bu": "Centre",
    "streamI": "Extra Revenues",
    "streamII": "Extra Revenues",
    "projectName": "Comune di Senigallia : Senigallia - Varchi VideosorveglianzaEXTRA LAVORI"
@@ -3213,7 +3213,7 @@
   "EPC-IPU-C058-01": {
    "seller": "Organic",
    "comune": "Costruzioni Acocella",
-   "bu": "Centre",
+   "bu": "South",
    "streamI": "One Off Works",
    "streamII": "One Off Works",
    "projectName": "COSTRUZIONI ACOCELLA  S.R.L. : COSTRUZIONI ACOCELLA LAVORI SPOT"
@@ -3317,7 +3317,7 @@
   "EPC-IPU-E246-03": {
    "seller": "Organic",
    "comune": "GUARDIA PERTICARA",
-   "bu": "Centre",
+   "bu": "South",
    "streamI": "Extra Revenues",
    "streamII": "Extra Revenues",
    "projectName": "COMUNE DI GUARDIA PERTICARA : GUARDIA PERTICARA IP EXTRA LAVORI SPOT CIG: B748D21257"
@@ -4173,7 +4173,7 @@
   "EPC-IPU-E976-08": {
    "seller": "Organic",
    "comune": "Edilgifa",
-   "bu": "North West",
+   "bu": "South",
    "streamI": "One Off Works",
    "streamII": "One Off Works",
    "projectName": "EDILGIFA DI FABI ANNALISA : EDILGIFA DI FABI ANNALISA EXTRA LAVORI SPOT"
@@ -4181,7 +4181,7 @@
   "EPC-IPU-A488-02": {
    "seller": "Organic",
    "comune": "Santa reparata",
-   "bu": "North West",
+   "bu": "Centre",
    "streamI": "One Off Works",
    "streamII": "One Off Works",
    "projectName": "COMITATO FESTA SANTA REPARATA : EXTRA LAVORI SPOT COMITATO S.REPARATA"
@@ -4189,7 +4189,7 @@
   "EPC-IPU-H602-02": {
    "seller": "Organic",
    "comune": "DRV",
-   "bu": "Centre",
+   "bu": "North West",
    "streamI": "Extra Revenues",
    "streamII": "Extra Revenues",
    "projectName": "DRV Group Construction S.r.l. : ROVELLO PORRO EX. LAV.PIANO ATTUATIVO VIA VERDI"
@@ -4493,7 +4493,7 @@
   "EPC-IPU-I608-01": {
    "seller": "Organic",
    "comune": "Senigallia",
-   "bu": "North West",
+   "bu": "Centre",
    "streamI": "Extra Revenues",
    "streamII": "Extra Revenues",
    "projectName": "Comune di Senigallia : Senigallia - Nuovi PL zone varieEXTRA LAVORI"
@@ -4621,7 +4621,7 @@
   "EPC-IPU-I608-06": {
    "seller": "Organic",
    "comune": "Senigallia",
-   "bu": "North West",
+   "bu": "Centre",
    "streamI": "Extra Revenues",
    "streamII": "Extra Revenues",
    "projectName": "Comune di Senigallia : SENIGALLIA EX.LAVORI DET 292 SS ADRIATICA"
@@ -4909,7 +4909,7 @@
   "EPC-IPU-I608-08": {
    "seller": "Organic",
    "comune": "Senigallia",
-   "bu": "North West",
+   "bu": "Centre",
    "streamI": "Extra Revenues",
    "streamII": "Extra Revenues",
    "projectName": "Comune di Senigallia : SENIGALLIA EXTRA LAVORI INCIDENTE VIA PO"
@@ -4949,7 +4949,7 @@
   "EPC-IPU-I608-07": {
    "seller": "Organic",
    "comune": "Senigallia",
-   "bu": "North West",
+   "bu": "Centre",
    "streamI": "Extra Revenues",
    "streamII": "Extra Revenues",
    "projectName": "Comune di Senigallia : SENIGALLIA EXTRA LAVORI INCIDENTE VIA LEOPARDI"
