@@ -1656,13 +1656,26 @@ function useDatabase() {
     let cancelled = false;
     (async () => {
       try {
-        const result = await window.storage.get('reconciliation-db', true);
-        if (!cancelled && result && result.value) {
-          const parsed = JSON.parse(result.value);
-          setDb(parsed);
+        // Each top-level table of SEED_DATA is stored as its own doc: the
+        // shared "db" capability caps a single document at 256 KiB, and the
+        // whole reconciliation DB serialized is well past that.
+        const claudeDb = await window.claude?.use?.('db');
+        if (!claudeDb) {
+          setSource('locale (storage non disponibile)');
+          return;
+        }
+        const snap = await claudeDb.collection('reconciliation').get();
+        if (!cancelled && !snap.empty) {
+          const loaded = {};
+          for (const doc of snap.docs) loaded[doc.id] = doc.data().value;
+          setDb({ ...SEED_DATA, ...loaded });
           setSource('condiviso');
-        } else {
-          await window.storage.set('reconciliation-db', JSON.stringify(SEED_DATA), true);
+        } else if (!cancelled) {
+          await Promise.all(
+            Object.entries(SEED_DATA).map(([key, value]) =>
+              claudeDb.collection('reconciliation').doc(key).set({ value })
+            )
+          );
           setSource('seed (primo avvio)');
         }
       } catch (e) {
