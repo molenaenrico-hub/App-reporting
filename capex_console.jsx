@@ -209,8 +209,24 @@ function toCSV(rows, columns) {
   return [header, ...lines].join('\n');
 }
 
-function downloadText(filename, text) {
+async function downloadText(filename, text) {
   const blob = new Blob(['\uFEFF' + text], { type: 'text/csv;charset=utf-8' });
+
+  // Inside the published Artifact, a page can't trigger a browser download
+  // itself (<a download> is inert there) \u2014 files go out through the
+  // "downloads" capability instead, which asks the viewer to confirm.
+  const downloads = await window.claude?.use?.('downloads').catch(() => null);
+  if (downloads) {
+    try {
+      await downloads.save({ filename, data: blob });
+    } catch (e) {
+      // viewer declined, or another prompt is open \u2014 nothing else to do here
+    }
+    return;
+  }
+
+  // Outside the Artifact runtime (local dev, a plain web host) the ordinary
+  // browser download works fine.
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url; a.download = filename;
@@ -865,6 +881,7 @@ function processBDV(wbTB, wbPL, db, wbDG) {
     if (!row || !row[0] || typeof row[0] !== 'string' || !row[0].includes(' - ')) continue;
     const parts = row[0].split(' - ');
     const codeStr = parts[0].trim();
+    if (/^total\b/i.test(codeStr)) continue; // NetSuite subtotal/grand-total line, not an account
     // the name is everything after the first separator (names can contain " - " themselves)
     const nameStr = parts.slice(1).join(' - ').trim();
     const debit = row[1] || 0;
