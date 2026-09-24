@@ -430,7 +430,7 @@ function capexFromRaw(wb, db) {
 
   const whitelist = new Set(db.cvsBuWhitelist || []);
   const rate = db.capexIndirectRate ?? 0.15;
-  const fvAgg = {}, csAgg = {}, unknownAnagrafica = new Set();
+  const fvAgg = {}, csAgg = {};
 
   for (const rec of parsed.records) {
     const family = activityCodeFamily(rec.act);
@@ -442,8 +442,9 @@ function capexFromRaw(wb, db) {
     const hist = (db.capexProjectDB && db.capexProjectDB[rec.pid]) || null;
     const { second } = projectIdSegments(rec.pid);
     const group = hist?.group || (second === 'PHV' ? 'FV' : 'CVS');
+    // Commesse senza anagrafica CapEx: % ATI assunta a 1, Società a "Civismart"
+    // più sotto — nessuna segnalazione per revisione.
     const ati = hist?.pctATI ?? 1;
-    if (!hist || hist.pctATI === undefined || !hist.societa) unknownAnagrafica.add(rec.pid);
 
     const cap = totale * ati;
     const name = rec.name || '';
@@ -463,7 +464,7 @@ function capexFromRaw(wb, db) {
     }
   }
 
-  return { fvAgg, csAgg, unknownAnagrafica, isRaw: true, sheetName: parsed.sheetName };
+  return { fvAgg, csAgg, isRaw: true, sheetName: parsed.sheetName };
 }
 
 function processCapEx(wb, db) {
@@ -611,8 +612,9 @@ function processCapEx(wb, db) {
         societa = hist.societa;
         notes.push('Società dal DB commesse (non presente nel file grezzo)');
       } else {
+        // nessuno storico e nessun dato nel file grezzo: default silenzioso,
+        // nessuna segnalazione per revisione (vedi sopra).
         societa = 'Civismart';
-        notes.push('Società NON nota: impostata "Civismart" in via predefinita — da confermare');
       }
     }
 
@@ -629,13 +631,14 @@ function processCapEx(wb, db) {
       notes.push(`BU DA VERIFICARE: nel DB commesse è "${buFinal}", ma il codice catastale ${cad.code} corrisponde a ${cad.comune} → "${cad.bu}". Valore tenuto: quello del DB commesse.`);
     }
 
-    const missingAnagrafica = rawBuilt && rawBuilt.unknownAnagrafica.has(agg.pid);
-    const flagged = !buFinal || !cls.service || buMismatch || missingAnagrafica;
+    // Commesse assenti dall'anagrafica CapEx non vengono più segnalate per
+    // revisione: % ATI resta assunta a 1 e Società a "Civismart" (vedi capexFromRaw),
+    // silenziosamente, su richiesta esplicita.
+    const flagged = !buFinal || !cls.service || buMismatch;
     const reasons = [];
     if (!cls.service) reasons.push(`segmenti del Project ID "${agg.pid}" non riconosciuti — Tipo servizio/contratto da inserire a mano`);
     if (!buFinal) reasons.push('BU non determinabile per questo comune/cliente');
     if (buMismatch) reasons.push(notes[notes.length - 1]);
-    if (missingAnagrafica) reasons.push('commessa non presente nell\'anagrafica CapEx: % ATI assunta a 1 e Società da confermare');
 
     results.push({
       key: nextKey(), status: flagged ? 'flag' : 'auto',
