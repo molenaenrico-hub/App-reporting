@@ -1,0 +1,498 @@
+﻿;;;;;;;;;0;0;;;;0;
+Società (B);Quadro (C);Altro (D);Ricla MG esteso (E);Codice Conto (F);Conto COGE (G);Cluster II (H);Conto COGE I livello (I);Conto COGE II livello (J);Valore mese € — CVS;Valore mese € — De Giorgi;Stato;Nota;;TOTALE;
+CVS;SP;;Intangible Assets;100201;Costi Di Impianto E Ampliamento;Impianto e ampliamento;Immobilizzazioni Immateriali;Bl.1 - costi di impianto e di ampliamento;4214,29;0;;Bilancio di Verifica;;4.214,29;100201
+CVS;SP;;Intangible Assets;100203;Software;Software;Immobilizzazioni Immateriali;BI.4 - concessioni, licenze, marchi e diritti simili;4.758.632,60;33.076;;Bilancio di Verifica;;4.791.708,60;100203
+CVS;SP;;Intangible Assets;100205;Avviamento;Avviamento;Immobilizzazioni Immateriali;BI.5 - avviamento;50.053.944,92;0;;Bilancio di Verifica;;50.053.944,92;100205
+CVS;SP;;Intangible Assets;100207;Lavori Straor. Su Beni Di Terzi;Lavori su beni di terzi;Immobilizzazioni Immateriali;BI.7 - altre immobilizzazioni immateriali;120.976.572,62;1.044.800,95;;Bilancio di Verifica;;122.021.373,57;100207
+CVS;SP;;Intangible Assets;100209;Lavori Straor. Su Beni Di Terzi In Corso;Lavori su beni di terzi in corso;Immobilizzazioni Immateriali;BI.7 - altre immobilizzazioni immateriali;21.620.273,21;0;;Bilancio di Verifica;;21.620.273,21;100209
+CVS;SP;;Intangible Assets;100211;Costi Di Ricerca E Sviluppo;Costi di ricerca e sviluppo;Immobilizzazioni Immateriali;BI.2 - costi di sviluppo;0;0;;assente nel grezzo → 0 (nessuna attività);;0;100211
+CVS;SP;;Intangible Assets;100215;Concessioni, Licenze E Marchi;Concessioni licenze e marchi;Immobilizzazioni Immateriali;BI.4 - concessioni, licenze, marchi e diritti simili;354.977,91;0;;Bilancio di Verifica;;354.977,91;100215
+CVS;SP;;Intangible Assets;100217;Altri Costi Ad Util. Plur. Da Amm.;Other intangible;Immobilizzazioni Immateriali;BI.7 - altre immobilizzazioni immateriali;201.871,57;8966,25;;Bilancio di Verifica;;210.837,82;100217
+CVS;SP;;Intangible Assets;100223;F/Amm. Costi Impianto;Impianto e ampliamento;Immobilizzazioni Immateriali;Bl.1 - costi di impianto e di ampliamento;-1496,05;0;;Bilancio di Verifica;;-1.496,05;100223
+CVS;SP;;Intangible Assets;100225;F/Amm Software;Software;Immobilizzazioni Immateriali;BI.4 - concessioni, licenze, marchi e diritti simili;-2.334.868,14;-33.076;;Bilancio di Verifica;;-2.367.944,14;100225
+CVS;SP;;Intangible Assets;100227;F/Amm Avviamento;Avviamento;Immobilizzazioni Immateriali;BI.5 - avviamento;-8392,14;0;;Bilancio di Verifica;;-8.392,14;100227
+CVS;SP;;Intangible Assets;100231;F/Amm Concessioni, Licenze E Marchi;Concessioni licenze e marchi;Immobilizzazioni Immateriali;BI.4 - concessioni, licenze, marchi e diritti simili;-260.807,85;0;;Bilancio di Verifica;;-260.807,85;100231
+CVS;SP;;Intangible Assets;100233;F/Amm Ricerca E Sviluppo;Costi di ricerca e sviluppo;Immobilizzazioni Immateriali;BI.2 - costi di sviluppo;0;0;;assente nel grezzo → 0 (nessuna attività);;0;100233
+CVS;SP;;Intangible Assets;100235;F/Amm. Lav. Str. Su Beni Di Terzi;Lavori su beni di terzi;Immobilizzazioni Immateriali;BI.7 - altre immobilizzazioni immateriali;-43.002.348,35;-466.034,54;;Bilancio di Verifica;;-43.468.382,89;100235
+CVS;SP;;Intangible Assets;100237;F/Amm. Alt. Cost. Ad Ut. Plu. Amm.;Other intangible;Immobilizzazioni Immateriali;BI.7 - altre immobilizzazioni immateriali;-196.064,56;-8966,25;;Bilancio di Verifica;;-205.030,81;100237
+CVS;SP;;Intangible Assets;100239;Spese Di Costituzione;Other intangible;Immobilizzazioni Immateriali;Bl.1 - costi di impianto e di ampliamento;55.778,54;0;;Bilancio di Verifica;;55.778,54;100239
+CVS;SP;;Intangible Assets;100241;F/Amm. Spese Di Costituzione;Other intangible;Immobilizzazioni Immateriali;Bl.1 - costi di impianto e di ampliamento;-55.414,19;0;;Bilancio di Verifica;;-55.414,19;100241
+CVS;SP;;Intangible Assets;100243;Disavanzo di Fusione;Disavanzo di fusione;Immobilizzazioni Immateriali;BI.5 - avviamento;0;0;;assente nel grezzo → 0 (nessuna attività);;0;100243
+CVS;SP;;Intangible Assets;100249;Lista clienti;Avviamento;TBD;TBD;29.035.480,52;0;;Bilancio di Verifica;;29.035.480,52;100249
+CVS;SP;;Intangible Assets;100251;F.do amm.to Lista clienti;Avviamento;TBD;TBD;-4.531.375,83;0;;Bilancio di Verifica;;-4.531.375,83;100251
+CVS;SP;;Tangible Assets;100401;Terreni;Terreni e fabbricati;Immobilizzazioni Materiali;Bll.1 - terreni e fabbricati;14.238,97;11.857,65;;Bilancio di Verifica;;26.096,62;100401
+CVS;SP;;Tangible Assets;100403;Beni Inferiori Ai 516,46 Euro;Other tangible;Immobilizzazioni Materiali;BII. 4 - altri beni;18.097;0;;Bilancio di Verifica;;18.097,00;100403
+CVS;SP;;Tangible Assets;100405;Fabbricati Ind.Li E Comm. Li;Terreni e fabbricati;Immobilizzazioni Materiali;Bll.1 - terreni e fabbricati;1.050.820,40;385.661,11;;Bilancio di Verifica;;1.436.481,51;100405
+CVS;SP;;Tangible Assets;100407;Costruzioni Leggere;Terreni e fabbricati;Immobilizzazioni Materiali;Bll.1 - terreni e fabbricati;104.546;0;;Bilancio di Verifica;;104.546,00;100407
+CVS;SP;;Tangible Assets;100409;Macchinari;Impianti e macchinari;TBD;TBD;36.920;32.895,58;;Bilancio di Verifica;;69.815,58;100409
+CVS;SP;;Tangible Assets;100411;Attrezzature Industriali E  Commerciali;Attrezzature industriali e commerciali;Immobilizzazioni Materiali;BIL.3 - attrezzature industriali e commerciali;717.177,20;41.352,67;;Bilancio di Verifica;;758.529,87;100411
+CVS;SP;;Tangible Assets;100413;Attrezzatura Varia E Minuta;Attrezzature industriali e commerciali;Immobilizzazioni Materiali;BIL.3 - attrezzature industriali e commerciali;77.813,34;40.456,09;;Bilancio di Verifica;;118.269,43;100413
+CVS;SP;;Tangible Assets;100415;Impianti Generici;Impianti e macchinari;Immobilizzazioni Materiali;BII.2 - impianti e macchinario;372.327,78;4098,25;;Bilancio di Verifica;;376.426,03;100415
+CVS;SP;;Tangible Assets;100417;Impianti Specifici;Impianti e macchinari;Immobilizzazioni Materiali;BII.2 - impianti e macchinario;571.065,70;0;;Bilancio di Verifica;;571.065,70;100417
+CVS;SP;;Tangible Assets;100419;Mobili E Macchine Ordinarie D'ufficio;Ufficio;Immobilizzazioni Materiali;BII. 4 - altri beni;516.770,12;0;;Bilancio di Verifica;;516.770,12;100419
+CVS;SP;;Tangible Assets;100421;Macchine Elettromeccaniche D'ufficio;Ufficio;Immobilizzazioni Materiali;BII. 4 - altri beni;364.211,72;18.720,07;;Bilancio di Verifica;;382.931,79;100421
+CVS;SP;;Tangible Assets;100423;Autoveicoli E Autocarri;Veicoli;Immobilizzazioni Materiali;BII. 4 - altri beni;710.845,27;214.006,57;;Bilancio di Verifica;;924.851,84;100423
+CVS;SP;;Tangible Assets;100425;Autovetture;Veicoli;Immobilizzazioni Materiali;BII. 4 - altri beni;90.383,75;33.282,87;;Bilancio di Verifica;;123.666,62;100425
+CVS;SP;;Tangible Assets;100427;Appar. Radiomobili Detr. 80%;Ufficio;TBD;TBD;46.069,52;0;;Bilancio di Verifica;;46.069,52;100427
+CVS;SP;;Tangible Assets;100429;F/Amm Fabbricati Ind.Li E Comm. Li;Terreni e fabbricati;Immobilizzazioni Materiali;Bll.1 - terreni e fabbricati;-299.457,10;-233.803,90;;Bilancio di Verifica;;-533.261,00;100429
+CVS;SP;;Tangible Assets;100431;F/Amm Costruzioni Leggere;Terreni e fabbricati;Immobilizzazioni Materiali;Bll.1 - terreni e fabbricati;-74.989;0;;Bilancio di Verifica;;-74.989,00;100431
+CVS;SP;;Tangible Assets;100433;F/Amm Macchinari;Impianti e macchinari;Immobilizzazioni Materiali;BII.2 - impianti e macchinario;-36.919,34;-31.725,72;;Bilancio di Verifica;;-68.645,06;100433
+CVS;SP;;Tangible Assets;100435;F/Amm Attrezzatura Industriali E  Commerciali;Attrezzature industriali e commerciali;Immobilizzazioni Materiali;BIL.3 - attrezzature industriali e commerciali;-652.334,16;-41.194,32;;Bilancio di Verifica;;-693.528,48;100435
+CVS;SP;;Tangible Assets;100437;F/Amm Attrezzatura Varia E Minuta;Attrezzature industriali e commerciali;Immobilizzazioni Materiali;BIL.3 - attrezzature industriali e commerciali;-74.803,03;-40.456,09;;Bilancio di Verifica;;-115.259,12;100437
+CVS;SP;;Tangible Assets;100439;F/Amm Impianti Generici;Impianti e macchinari;Immobilizzazioni Materiali;BII.2 - impianti e macchinario;-329.143,84;-3971,97;;Bilancio di Verifica;;-333.115,81;100439
+CVS;SP;;Tangible Assets;100441;F/Amm Impianti Specifici;Impianti e macchinari;Immobilizzazioni Materiali;BII.2 - impianti e macchinario;-478.748,50;0;;Bilancio di Verifica;;-478.748,50;100441
+CVS;SP;;Tangible Assets;100443;F/Amm Mobili E Macchine Ordinarie D'ufficio;Ufficio;Immobilizzazioni Materiali;BII. 4 - altri beni;-395.317,49;0;;Bilancio di Verifica;;-395.317,49;100443
+CVS;SP;;Tangible Assets;100445;F/Amm Macchine Elettromeccaniche D'ufficio;Ufficio;Immobilizzazioni Materiali;BII. 4 - altri beni;-237.452,24;-16.375,74;;Bilancio di Verifica;;-253.827,98;100445
+CVS;SP;;Tangible Assets;100447;F/Amm Autoveicoli E Autocarri;Veicoli;Immobilizzazioni Materiali;BII. 4 - altri beni;-666.067,87;-155.726,02;;Bilancio di Verifica;;-821.793,89;100447
+CVS;SP;;Tangible Assets;100449;F/Amm Autovetture;Veicoli;Immobilizzazioni Materiali;BII. 4 - altri beni;-88.911,25;-33.282,87;;Bilancio di Verifica;;-122.194,12;100449
+CVS;SP;;Tangible Assets;100451;F/Amm Appar. Radiomobili;Ufficio;TBD;TBD;-43.338,58;0;;Bilancio di Verifica;;-43.338,58;100451
+CVS;SP;;Tangible Assets;100453;Arredamento;Ufficio;Immobilizzazioni Materiali;BII. 4 - altri beni;6766;32.643,96;;Bilancio di Verifica;;39.409,96;100453
+CVS;SP;;Tangible Assets;100455;F/Amm Arredamento;Ufficio;Immobilizzazioni Materiali;BII. 4 - altri beni;-6367,3;-24.502,75;;Bilancio di Verifica;;-30.870,05;100455
+CVS;SP;FV;Tangible Assets;100457;Immobiliazioni Materiali In Corso - FV Lizzano;Fotovoltaico in corso;Immobilizzazioni Materiali;BII.5 - immobilizzazioni in corso e acconti;81.349,91;0;;Bilancio di Verifica;;81.349,91;100457
+CVS;SP;FV;Tangible Assets;100459;Fornitori Imm. Materiali c/acconti - FV Mucca Nera;Fotovoltaico in corso;Immobilizzazioni Materiali;BII.5 - immobilizzazioni in corso e acconti;5035,95;0;;Bilancio di Verifica;;5.035,95;100459
+CVS;SP;;Tangible Assets;100461;Fornitori Imm. Materiali c/acconti;Immobilizzazioni in corso;Immobilizzazioni Materiali;BII.5 - immobilizzazioni in corso e acconti;46.863,20;0;;Bilancio di Verifica;;46.863,20;100461
+CVS;SP;;Tangible Assets;100463;Fabbricati Ind.Li e Comm. Li (MiniPia);Terreni e fabbricati;Immobilizzazioni Materiali;Bll.1 - terreni e fabbricati;542.422,65;0;;Bilancio di Verifica;;542.422,65;100463
+CVS;SP;;Tangible Assets;100465;F/Amm Fabbricati Ind.Li E Comm. Li (MiniPia);Terreni e fabbricati;Immobilizzazioni Materiali;Bll.1 - terreni e fabbricati;-59.135,35;0;;Bilancio di Verifica;;-59.135,35;100465
+CVS;SP;;Tangible Assets;100467;F/Amm. Beni Inferiori Ai 516,46 Euro;Other tangible;Immobilizzazioni Materiali;BII. 4 - altri beni;-18.097,31;0;;Bilancio di Verifica;;-18.097,31;100467
+CVS;SP;FV;Tangible Assets;100469;Immobiliazioni Materiali In Corso - FV Avezzano 3;Fotovoltaico in corso;N/A_Conti Infrannuali;N/A_conti infrannuali;1.164.176,77;0;;Bilancio di Verifica;;1.164.176,77;100469
+CVS;SP;FV;Tangible Assets;100471;Immobiliazioni Materiali In Corso - FV Montorio al Vomano 1;Fotovoltaico in corso;N/A_Conti Infrannuali;N/A_conti infrannuali;1.645.137,95;0;;Bilancio di Verifica;;1.645.137,95;100471
+CVS;SP;FV;Tangible Assets;100473;Immobiliazioni Materiali In Corso - FV Giulianova;Fotovoltaico in corso;TBD;TBD;921.393,76;0;;Bilancio di Verifica;;921.393,76;100473
+CVS;SP;FV;Tangible Assets;100475;Immobiliazioni Materiali In Corso - FV Borgorose;Fotovoltaico in corso;TBD;TBD;973.496,14;0;;Bilancio di Verifica;;973.496,14;100475
+CVS;SP;FV;Tangible Assets;100477;Immobiliazioni Materiali In Corso - FV Copertino 1;Fotovoltaico in corso;TBD;TBD;1.115.669,57;0;;Bilancio di Verifica;;1.115.669,57;100477
+CVS;SP;FV;Tangible Assets;100479;Immobiliazioni Materiali In Corso - FV Corfinio;Fotovoltaico in corso;TBD;TBD;829.090,49;0;;Bilancio di Verifica;;829.090,49;100479
+CVS;SP;FV;Tangible Assets;100481;Immobiliazioni Materiali In Corso - FV Avezzano 4;Fotovoltaico in corso;TBD;TBD;1.087.160,78;0;;Bilancio di Verifica;;1.087.160,78;100481
+CVS;SP;FV;Tangible Assets;100483;Immobiliazioni Materiali In Corso - FV Montorio al Vomano 3;Fotovoltaico in corso;TBD;TBD;991.956,75;0;;Bilancio di Verifica;;991.956,75;100483
+CVS;SP;FV;Tangible Assets;100485;Immobiliazioni Materiali In Corso - FV Montorio al Vomano 4;Fotovoltaico in corso;TBD;TBD;916.403,37;0;;Bilancio di Verifica;;916.403,37;100485
+CVS;SP;FV;Tangible Assets;100487;Immobiliazioni Materiali In Corso - FV Collarmele;Fotovoltaico in corso;TBD;TBD;838.538,06;0;;Bilancio di Verifica;;838.538,06;100487
+CVS;SP;FV;Tangible Assets;100489;Immobiliazioni Materiali In Corso - FV Campi Salentina 1;Fotovoltaico in corso;TBD;TBD;1.087.448,49;0;;Bilancio di Verifica;;1.087.448,49;100489
+CVS;SP;FV;Tangible Assets;100491;Immobiliazioni Materiali In Corso - FV Copertino 2;Fotovoltaico in corso;TBD;TBD;766.621,33;0;;Bilancio di Verifica;;766.621,33;100491
+CVS;SP;FV;Tangible Assets;100493;Immobiliazioni Materiali In Corso - FV Carmiano;Fotovoltaico in corso;TBD;TBD;270.032,82;0;;Bilancio di Verifica;;270.032,82;100493
+CVS;SP;FV;Tangible Assets;100495;Immobiliazioni Materiali In Corso - FV Raiano 1;Fotovoltaico in corso;TBD;TBD;261.711,78;0;;Bilancio di Verifica;;261.711,78;100495
+CVS;SP;FV;Tangible Assets;100497;Immobiliazioni Materiali In Corso - FV Raiano 2;Fotovoltaico in corso;TBD;TBD;330.943,51;0;;Bilancio di Verifica;;330.943,51;100497
+CVS;SP;FV;Tangible Assets;100499;Immobiliazioni Materiali In Corso - FV Tricase;Fotovoltaico in corso;TBD;TBD;143.607,90;0;;Bilancio di Verifica;;143.607,90;100499
+CVS;SP;;Intangible Assets;100501;Diritti D'uso;Leasing;TBD;TBD;3.399.355,54;0;;Bilancio di Verifica;;3.399.355,54;100501
+CVS;SP;;Intangible Assets;100503;Fondo amm.to diritti d'uso;Leasing;TBD;TBD;-1.302.951,51;0;;Bilancio di Verifica;;-1.302.951,51;100503
+CVS;SP;FV;Tangible Assets;100505;Immobiliazioni Materiali In Corso - FV San Giorgio Ionico;Fotovoltaico in corso;TBD;TBD;154.101,24;0;;Bilancio di Verifica;;154.101,24;100505
+CVS;SP;FV;Tangible Assets;100509;Immobiliazioni Materiali In Corso - FV Avezzano 5;Fotovoltaico in corso;TBD;TBD;57.320,60;0;;Bilancio di Verifica;;57.320,60;100509
+CVS;SP;FV;Tangible Assets;100513;Immobiliazioni Materiali In Corso - FV Taviano 2;Fotovoltaico in corso;TBD;TBD;411.699,71;0;;Bilancio di Verifica;;411.699,71;100513
+CVS;SP;FV;Tangible Assets;100515;Immobiliazioni Materiali In Corso - FV Scurcola 1;Fotovoltaico in corso;TBD;TBD;110.808,86;0;;Bilancio di Verifica;;110.808,86;100515
+CVS;SP;;Financial Assets;100601;Partecipazioni Imp. Controllate;Partecipazioni imprese controllate;Immobilizzazioni Finanziarie;BlII. 1a- Partecipazioni in imprese controllate;12.654.421,80;0;;Bilancio di Verifica;;12.654.421,80;100601
+CVS;SP;;Financial Assets;100603;Partecipazioni Imp. Collegate;Partecipazioni imprese collegate;TBD;TBD;491.899,50;0;;Bilancio di Verifica;;491.899,50;100603
+CVS;SP;;Financial Assets;100605;Partecipazioni Imp. Altre Imprese;Partecipazioni altre imprese;Immobilizzazioni Finanziarie;BlII. 1d-bis - Partecipazioni in altre imprese;46.954,62;2066;;Bilancio di Verifica;;49.020,62;100605
+CVS;SP;;Other Credit;100607;Crediti Vs. Imp. Controllate;;Immobilizzazioni Finanziarie;BlII.2a - verso imprese controllate;17.114.347,02;0;;Bilancio di Verifica;;17.114.347,02;100607
+CVS;SP;;Other Credit;100609;Crediti Vs. Imp. Collegate;;N/A_Conti Infrannuali;N/A_conti infrannuali;0;0;;assente nel grezzo → 0 (nessuna attività);;0;100609
+CVS;SP;;Other Credit;100611;Crediti Vs. Imp. Altre Imprese;;N/A_Conti Infrannuali;N/A_conti infrannuali;3992;0;;Bilancio di Verifica;;3.992,00;100611
+CVS;SP;;Other Credit;100615;Crediti Vs. Altri;;Immobilizzazioni Finanziarie;BlII.2d-bis - verso altri;120.180,32;0;;Bilancio di Verifica;;120.180,32;100615
+CVS;SP;;Other Credit;100621;Depositi Cauzioniari Commerciali;;Immobilizzazioni Finanziarie;BlII.2d-bis - verso altri;135.934,92;0;;Bilancio di Verifica;;135.934,92;100621
+CVS;SP;;Other Reserves;100622;Soci c/sottoscrizione;;N/A_Conti Infrannuali;N/A_conti infrannuali;108.000;0;;Bilancio di Verifica;;108.000,00;100622
+CVS;SP;;Financial Assets;100623;Crediti Vs. SPV Città Metropolitana Venezia II;Acquisto Crediti Genera;TBD;TBD;2.888.550,21;0;;Bilancio di Verifica;;2.888.550,21;100623
+CVS;SP;;Financial Assets;100625;Crediti Vs. SPV Crosia Smart City;Acquisto Crediti Genera;TBD;TBD;894.050,18;0;;Bilancio di Verifica;;894.050,18;100625
+CVS;SP;;Financial Assets;100627;Crediti Vs. SPV Spezzano Albanese Smart City;Acquisto Crediti Genera;TBD;TBD;978.336,66;0;;Bilancio di Verifica;;978.336,66;100627
+CVS;SP;;Other Credit;100629;Crediti Vs. SPV Pulsano;;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;100629
+CVS;SP;;Other Credit;100631;Crediti Vs. SPV Presicce Acquarica Smart City Srl;;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;100631
+CVS;SP;;Financial Assets;100635;Credito Acquisizione Alfano_Partecipazione TECS;Acquisto Tecs (Alfano opportunity);TBD;TBD;7.918.688;0;;Bilancio di Verifica;;7.918.688,00;100635
+CVS;SP;;Other Credit;100637;Credito v/controllante;;TBD;TBD;44,98;0;;Bilancio di Verifica;;44,98;100637
+CVS;SP;;Inventory;120209;Materie Prime, Sussidiarie E Consumo Finali;;Rimanenze;CI.1 - materie prime, sussidiarie e di consumo;5.244.545,07;0;;Bilancio di Verifica;;5.244.545,07;120209
+CVS;SP;;Trade Receivables;140201;Crediti Vs Clienti Nazionali;;Crediti Verso Clienti;CII.1 - verso clienti;13.611.788,14;167.319,49;;Bilancio di Verifica;;13.779.107,63;140201
+CVS;SP;;Trade Receivables;140205;Fondo Svalutazione Crediti;;Crediti Verso Clienti;CII.1 - verso clienti;-590.461,28;0;;Bilancio di Verifica;;-590.461,28;140205
+CVS;SP;;Trade Receivables;140219;Credito v/GSE (conto termico);;Crediti Verso Clienti;ClI.5-quater - verso altri;146,4;0;;Bilancio di Verifica;;146,4;140219
+CVS;SP;;Trade Receivables;140221;Credito v/Regione Basilicata;;Crediti Verso Clienti;ClI.5-quater - verso altri;113.167,29;0;;Bilancio di Verifica;;113.167,29;140221
+CVS;SP;;Tax Credit;140223;Crediti v/imprese controllanti per consolidato fiscale;;Crediti Verso Clienti;ClI.5-quater - verso altri;116.452,71;0;;Bilancio di Verifica;;116.452,71;140223
+CVS;SP;;Trade Receivables;140225;Crediti Vs Clienti Esteri;;Crediti Verso Clienti;CII.1 - verso clienti;1525;0;;Bilancio di Verifica;;1.525,00;140225
+CVS;SP;;Other Credit;140227;Crediti Intercompany;;N/A_Conti Infrannuali;N/A_conti infrannuali;563.849,75;0;;Bilancio di Verifica;;563.849,75;140227
+CVS;SP;;Trade Receivables;140229;Crediti Vs Chioggia Servizi;;TBD;TBD;1.700.391,73;0;;Bilancio di Verifica;;1.700.391,73;140229
+CVS;SP;;Financial Assets;160201;Altri Titoli;Partecipazioni altre imprese;Attività Finanziarie Che Non Costituiscono Imm.;CIII.6 - Altri titoli;461.829,21;0;;Bilancio di Verifica;;461.829,21;160201
+CVS;CE;R;Other Revenues;160203;Spese Anticipate;;N/A_Conti Infrannuali;N/A_conti infrannuali;-756,79;0;;Bilancio di Verifica;;-756,79;160203
+CVS;SP;;Other Credit;160205;Anticipo Bolla Doganale;;Attività Finanziarie Che Non Costituiscono Imm.;CIII.6 - Altri titoli;-28.579,75;0;;Bilancio di Verifica;;-28.579,75;160205
+CVS;SP;;Trade Receivables;160207;Fatture Da Emettere;;Attività Finanziarie Che Non Costituiscono Imm.;CII.1 - verso clienti;17.628.920,23;33.623,11;;Bilancio di Verifica;;17.662.543,34;160207
+CVS;SP;;Other Credit;160208;Crediti verso Altri;;Attività Finanziarie Che Non Costituiscono Imm.;ClI.5-quater - verso altri;353.316,06;0;;Bilancio di Verifica;;353.316,06;160208
+CVS;SP;;Trade Payables;160210;Note di Credito Da Ricevere;;Debiti Vs Fornitori;D.7 - debiti verso fornitori;147.938,91;0;;Bilancio di Verifica;;147.938,91;160210
+CVS;SP;;Trade Payables;160212;Fornitori C/Acconti;;Attività Finanziarie Che Non Costituiscono Imm.;ClI.5-quater - verso altri;166.102,55;0;;Bilancio di Verifica;;166.102,55;160212
+CVS;SP;;Other Credit;160214;Dipendenti c/ant. su retribuzioni;;N/A_Conti Infrannuali;N/A_conti infrannuali;0;0;;assente nel grezzo → 0 (nessuna attività);;0;160214
+CVS;SP;;Other Credit;160216;Crediti per ritenuta a garanzia;;TBD;TBD;641.999,50;0;;Bilancio di Verifica;;641.999,50;160216
+CVS;SP;;Other Credit;160218;Crediti/Debiti v/Atlantico Spa;;TBD;TBD;3335;0;;Bilancio di Verifica;;3.335,00;160218
+CVS;SP;;Other Credit;160220;Crediti V/Socio Sofein Da Richiamare;;TBD;TBD;5062,5;0;;Bilancio di Verifica;;5.062,50;160220
+CVS;SP;;Other Credit;160222;Credito V/Sofein Accordo Transattivo;;TBD;TBD;137.585,87;0;;Bilancio di Verifica;;137.585,87;160222
+CVS;SP;;Trade Receivables;160224;Credito V/Estra Clima;;TBD;TBD;16,75;0;;Bilancio di Verifica;;16,75;160224
+CVS;SP;;Tax Credit;160401;Erario C/Iva Compensazione;;Crediti Tributari;CII.5-bis - crediti tributari;1.012.821,40;131.602,09;;Bilancio di Verifica;;1.144.423,49;160401
+CVS;SP;;Tax Credit;160403;Erario C/Iva Rimborso;;Crediti Tributari;CII.5-bis - crediti tributari;2.942.929,78;0;;Bilancio di Verifica;;2.942.929,78;160403
+CVS;SP;;Tax Credit;160405;Erario C/Rit. Subite;;Crediti Tributari;CII.5-bis - crediti tributari;909,42;0;;Bilancio di Verifica;;909,42;160405
+CVS;SP;;Tax Credit;160407;Crediti Per Imposte Anticipate;;Crediti Tributari;CII.5-ter - imposte anticipate;673.332,24;0;;Bilancio di Verifica;;673.332,24;160407
+CVS;SP;;Tax Credit;160409;Credito D'imposta;;Crediti Tributari;CII.5-bis - crediti tributari;16.924,23;0;;Bilancio di Verifica;;16.924,23;160409
+CVS;SP;;Tax Credit;160411;Iva su Acquisti;;N/A_Conti Infrannuali;N/A_conti infrannuali;2.334.868,45;0;;Bilancio di Verifica;;2.334.868,45;160411
+CVS;SP;;Tax Credit;160413;I.N.A.I.L. C/Acconti;;TBD;TBD;1305,52;6119,97;;Bilancio di Verifica;;7.425,49;160413
+CVS;SP;;Cash & Cash Equivalent;180201;Cassa;;Disponibilità Liquide;CIV.3 - danaro e valori in cassa;7566,21;6,87;;Bilancio di Verifica;;7.573,08;180201
+CVS;SP;;Gross Debt;180203;Banca Pop. Emilia C/C 398;;Debiti Vs Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;180203
+CVS;SP;;Cash & Cash Equivalent;180205;Banca Pop. Emilia C/C 392;;Disponibilità Liquide;CIV.1 - depositi bancari e postali;9661,71;0;;Bilancio di Verifica;;9.661,71;180205
+CVS;SP;;Cash & Cash Equivalent;180207;Banca Intesa C/C 5054;;Disponibilità Liquide;CIV.1 - depositi bancari e postali;29.778,39;0;;Bilancio di Verifica;;29.778,39;180207
+CVS;SP;;Cash & Cash Equivalent;180209;Banca Intesa C/C 655;;Disponibilità Liquide;CIV.1 - depositi bancari e postali;30.939,31;0;;Bilancio di Verifica;;30.939,31;180209
+CVS;SP;;Cash & Cash Equivalent;180211;Banca Intesa C/C 3830;;Disponibilità Liquide;CIV.1 - depositi bancari e postali;5286,42;0;;Bilancio di Verifica;;5.286,42;180211
+CVS;SP;;Cash & Cash Equivalent;180213;Banca Intesa C/C 5970;;Disponibilità Liquide;CIV.1 - depositi bancari e postali;41.308,02;0;;Bilancio di Verifica;;41.308,02;180213
+CVS;SP;;Cash & Cash Equivalent;180215;Banca Intesa C/C 5971;;Disponibilità Liquide;CIV.1 - depositi bancari e postali;426.672,56;0;;Bilancio di Verifica;;426.672,56;180215
+CVS;SP;;Cash & Cash Equivalent;180217;Banca C.Agricole C/C 8142;;Disponibilità Liquide;CIV.1 - depositi bancari e postali;178.406,61;0;;Bilancio di Verifica;;178.406,61;180217
+CVS;SP;;Cash & Cash Equivalent;180219;Banca Bpm C/C 1419;;Debiti Vs Banche;D.4 - debiti verso banche;77.656,77;0;;Bilancio di Verifica;;77.656,77;180219
+CVS;SP;;Cash & Cash Equivalent;180221;Banca Bper-Carige C/C 8323;;Disponibilità Liquide;CIV.1 - depositi bancari e postali;85.435,26;0;;Bilancio di Verifica;;85.435,26;180221
+CVS;SP;;Cash & Cash Equivalent;180223;Banca Emilbanca C/C 0348;;Disponibilità Liquide;CIV.1 - depositi bancari e postali;30.800,90;0;;Bilancio di Verifica;;30.800,90;180223
+CVS;SP;;Cash & Cash Equivalent;180225;Banca MPS C/C;;Disponibilità Liquide;CIV.1 - depositi bancari e postali;77.231,71;0;;Bilancio di Verifica;;77.231,71;180225
+CVS;SP;;Cash & Cash Equivalent;180227;Banca Pop. Emilia C/C 203;;Disponibilità Liquide;CIV.1 - depositi bancari e postali;4.198.567,61;0;;Bilancio di Verifica;;4.198.567,61;180227
+CVS;SP;;Cash & Cash Equivalent;180229;Banca Unicredit C/C 5305;;Disponibilità Liquide;CIV.1 - depositi bancari e postali;0;0;;assente nel grezzo → 0 (nessuna attività);;0;180229
+CVS;SP;;Cash & Cash Equivalent;180231;Banco Posta C/C 522;;Disponibilità Liquide;CIV.1 - depositi bancari e postali;448,71;0;;Bilancio di Verifica;;448,71;180231
+CVS;SP;;Cash & Cash Equivalent;180235;Carta Prepagata Intesa 2203;;Disponibilità Liquide;CIV.1 - depositi bancari e postali;0;0;;assente nel grezzo → 0 (nessuna attività);;0;180235
+CVS;SP;;Cash & Cash Equivalent;180239;Carta Prepagata Intesa 4805;;Disponibilità Liquide;CIV.1 - depositi bancari e postali;0;0;;assente nel grezzo → 0 (nessuna attività);;0;180239
+CVS;SP;;Cash & Cash Equivalent;180241;Carta Prepagata Intesa 0903;;Disponibilità Liquide;CIV.1 - depositi bancari e postali;0;0;;assente nel grezzo → 0 (nessuna attività);;0;180241
+CVS;SP;;Cash & Cash Equivalent;180243;BPM c/c 3269;;N/A_Conti Infrannuali;N/A_conti infrannuali;1.053.391,40;0;;Bilancio di Verifica;;1.053.391,40;180243
+CVS;SP;;Cash & Cash Equivalent;180245;Igea c/c 2293 (ex Racale);;N/A_Conti Infrannuali;N/A_conti infrannuali;0;0;;assente nel grezzo → 0 (nessuna attività);;0;180245
+CVS;SP;;Cash & Cash Equivalent;180246;Igea c/c 2293;;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;180246
+CVS;SP;;Cash & Cash Equivalent;180247;BPM c/c 4945;;N/A_Conti Infrannuali;N/A_conti infrannuali;140.937,60;0;;Bilancio di Verifica;;140.937,60;180247
+CVS;SP;;Cash & Cash Equivalent;180249;BPM c/c 3502;;N/A_Conti Infrannuali;N/A_conti infrannuali;27.903,26;0;;Bilancio di Verifica;;27.903,26;180249
+CVS;SP;;Cash & Cash Equivalent;180251;BPM c/c 4499;;N/A_Conti Infrannuali;N/A_conti infrannuali;464.584,30;0;;Bilancio di Verifica;;464.584,30;180251
+CVS;SP;;Cash & Cash Equivalent;180253;BPM c/c 3080;;N/A_Conti Infrannuali;N/A_conti infrannuali;88.654,57;0;;Bilancio di Verifica;;88.654,57;180253
+CVS;SP;;Cash & Cash Equivalent;180255;Banca Biver (Asti);;Disponibilità Liquide;CIV.1 - depositi bancari e postali;13.823,53;0;;Bilancio di Verifica;;13.823,53;180255
+CVS;SP;;Gross Debt;180257;Carta Banca Popolare Emilia;;Debiti Verso Banche;D.4 - debiti verso banche;268;0;;Bilancio di Verifica;;268;180257
+CVS;SP;;Gross Debt;180259;Carta Banca Intesa;;Disponibilità Liquide;D.4 - debiti verso banche;-1628,5;0;;Bilancio di Verifica;;-1.628,50;180259
+CVS;SP;;Gross Debt;180261;Carta MPS;;Disponibilità Liquide;D.4 - debiti verso banche;1808,5;0;;Bilancio di Verifica;;1.808,50;180261
+CVS;SP;;Cash & Cash Equivalent;180263;Banca Unicredit C/C 6783;;Disponibilità Liquide;CIV.1 - depositi bancari e postali;0;0;;assente nel grezzo → 0 (nessuna attività);;0;180263
+CVS;SP;;Cash & Cash Equivalent;180265;Banca Intesa C/C 6112;;N/A_Conti Infrannuali;N/A_conti infrannuali;-1,5;0;;Bilancio di Verifica;;-1,5;180265
+CVS;SP;;Cash & Cash Equivalent;180267;BPM C/C 0526;;Disponibilità Liquide;CIV.1 - depositi bancari e postali;26.202,67;0;;Bilancio di Verifica;;26.202,67;180267
+CVS;SP;;Cash & Cash Equivalent;180271;Carta Bper 6467;;Disponibilità Liquide;CIV.1 - depositi bancari e postali;0;0;;assente nel grezzo → 0 (nessuna attività);;0;180271
+CVS;SP;;Cash & Cash Equivalent;180273;BPER Banca c/c 6637;;N/A_Conti Infrannuali;N/A_conti infrannuali;162.028,18;0;;Bilancio di Verifica;;162.028,18;180273
+CVS;SP;;Cash & Cash Equivalent;180275;Carta Bper 5729;;N/A_Conti Infrannuali;N/A_conti infrannuali;172,48;0;;Bilancio di Verifica;;172,48;180275
+CVS;SP;;Cash & Cash Equivalent;180277;Carta Bper 5737;;N/A_Conti Infrannuali;N/A_conti infrannuali;1784,6;0;;Bilancio di Verifica;;1.784,60;180277
+CVS;SP;;Cash & Cash Equivalent;180279;Carta Bper 5752;;N/A_Conti Infrannuali;N/A_conti infrannuali;1,76;0;;Bilancio di Verifica;;1,76;180279
+CVS;SP;;Cash & Cash Equivalent;180281;Carta Bper 5745;;N/A_Conti Infrannuali;N/A_conti infrannuali;311,85;0;;Bilancio di Verifica;;311,85;180281
+CVS;SP;;Cash & Cash Equivalent;180283;Banco Posta C/C 294;;N/A_Conti Infrannuali;N/A_conti infrannuali;869,98;0;;Bilancio di Verifica;;869,98;180283
+CVS;SP;;Cash & Cash Equivalent;180285;Carta Bper 2384;;N/A_Conti Infrannuali;N/A_conti infrannuali;2756,07;0;;Bilancio di Verifica;;2.756,07;180285
+CVS;SP;;Cash & Cash Equivalent;180287;Banca Adria C/C 2544;;TBD;TBD;1.318.575,45;0;;Bilancio di Verifica;;1.318.575,45;180287
+CVS;SP;;Cash & Cash Equivalent;180289;Banca Intesa San Paolo C/C 12616;;TBD;TBD;2984,46;0;;Bilancio di Verifica;;2.984,46;180289
+CVS;SP;;Cash & Cash Equivalent;180291;Carta Prepagata 8515860;;TBD;TBD;395,41;0;;Bilancio di Verifica;;395,41;180291
+CVS;SP;;Cash & Cash Equivalent;180295;Carta Prepagata 4830630006208302 - Intesa;;TBD;TBD;-2,25;0;;Bilancio di Verifica;;-2,25;180295
+CVS;SP;;Cash & Cash Equivalent;180297;Carta Intesa N 47;;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;180297
+CVS;SP;;Cash & Cash Equivalent;180299;Carta 8519873;;TBD;TBD;460,52;0;;Bilancio di Verifica;;460,52;180299
+CVS;SP;;Cash & Cash Equivalent;180301;Carta 8519874;;TBD;TBD;87,78;0;;Bilancio di Verifica;;87,78;180301
+CVS;SP;;Cash & Cash Equivalent;180303;Carta 8519875;;TBD;TBD;0,61;0;;Bilancio di Verifica;;0,61;180303
+CVS;SP;;Cash & Cash Equivalent;180307;Nexi Carta 7371;;TBD;TBD;-621,03;0;;Bilancio di Verifica;;-621,03;180307
+CVS;SP;;Cash & Cash Equivalent;180309;Nexi Carta 2803;;TBD;TBD;3338,42;0;;Bilancio di Verifica;;3.338,42;180309
+CVS;SP;;Cash & Cash Equivalent;180311;Nexi Carta 9856;;TBD;TBD;-779,27;0;;Bilancio di Verifica;;-779,27;180311
+CVS;SP;;Cash & Cash Equivalent;180313;Banca Marca C/C 979452;;TBD;TBD;524.561,23;0;;Bilancio di Verifica;;524.561,23;180313
+CVS;SP;;Cash & Cash Equivalent;180315;Carta Intesa N 79;;TBD;TBD;0,01;0;;Bilancio di Verifica;;0,01;180315
+CVS;SP;;Cash & Cash Equivalent;180317;Nexi Carta 8636;;TBD;TBD;-587,39;0;;Bilancio di Verifica;;-587,39;180317
+CVS;SP;;Cash & Cash Equivalent;180319;Banca Pop. Emilia C/C 409;;TBD;TBD;39.673,79;0;;Bilancio di Verifica;;39.673,79;180319
+CVS;SP;;Cash & Cash Equivalent;180321;Banca Pop. Emilia C/C 735;;TBD;TBD;344.830,48;0;;Bilancio di Verifica;;344.830,48;180321
+CVS;SP;;Cash & Cash Equivalent;180323;Carta 8570257;;TBD;TBD;105,35;0;;Bilancio di Verifica;;105,35;180323
+CVS;SP;;Cash & Cash Equivalent;180325;Banca Intesa San Paolo C/C 258;;TBD;TBD;240.562,87;0;;Bilancio di Verifica;;240.562,87;180325
+CVS;SP;;Cash & Cash Equivalent;180327;Banca Intesa San Paolo C/C 171;;TBD;TBD;132.826,55;0;;Bilancio di Verifica;;132.826,55;180327
+CVS;SP;;Cash & Cash Equivalent;180329;Banca Intesa San Paolo C/C 176;;TBD;TBD;322.932,67;0;;Bilancio di Verifica;;322.932,67;180329
+CVS;SP;;Cash & Cash Equivalent;180331;Banca c/c (RSEE);;TBD;TBD;68.270,01;0;;Bilancio di Verifica;;68.270,01;180331
+CVS;SP;;Cash & Cash Equivalent;180333;Banca Unicredit c/c 3810;;TBD;TBD;21.886,84;0;;Bilancio di Verifica;;21.886,84;180333
+CVS;SP;;Cash & Cash Equivalent;180335;Banca c/c RSEE BPM;;TBD;TBD;96,16;0;;Bilancio di Verifica;;96,16;180335
+CVS;SP;;Cash & Cash Equivalent;180337;Banca Unicredit c/c 8410;;TBD;TBD;1.451.695,41;0;;Bilancio di Verifica;;1.451.695,41;180337
+CVS;SP;;Cash & Cash Equivalent;180351;Banca Unicredit c/c 3254;;TBD;CIV.1 - depositi bancari e postali;18.937,43;0;;Bilancio di Verifica;;18.937,43;180351
+CVS;SP;;Other Liabilities;200203;Risconti Passivi;;Ratei E Risconti Passivi;E - RATEI E RISCONTI PASSIVI;-214.497,64;-994,37;;Bilancio di Verifica;;-215.492,01;200203
+CVS;SP;;Share Capital;220201;Capitale Sociale;;Capitale;Al - capitale;-1.699.000;-100.000;;Bilancio di Verifica;;-1.799.000,00;220201
+CVS;SP;;Other Reserves;220203;Riserva Sovrapprezzo Azioni;;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;220203
+CVS;SP;;Legal Reserve;220207;Riserva Legale;;Riserva Legale ;A/V - riserva legale;-320.642,72;-20.000;;Bilancio di Verifica;;-340.642,72;220207
+CVS;SP;;Other Reserves;220209;Riserva Staordinaria;;N/A_Conti Infrannuali;N/A_conti infrannuali;-1.369.957,26;-1.316.043,91;;Bilancio di Verifica;;-2.686.001,17;220209
+CVS;SP;;Other Reserves;220213;Ris. Per Operaz. Di Copertura Dei  Flussi Finanz. Attesi;;Varie Altre Riserve;AVII - riserva per operazioni di copertura dei flussi finanziari attesi;6367,63;0;;Bilancio di Verifica;;6.367,63;220213
+CVS;SP;;Capital Call;220215;Riserva C/Aumento Capitale;;Riserva C/Aumento Capitale;AVI - altre riserve distintamente indicate;-193.410.191;0;;Bilancio di Verifica;;-193.410.191,00;220215
+CVS;SP;;Retained Earnings;220217;Perdite/Utili A Nuovo;;Utili (Perdita) Portati A Nuovo;AVIII - utile (perdita) portati a nuovo;-3.547.477,14;0;;Bilancio di Verifica;;-3.547.477,14;220217
+CVS;SP;;Retained Earnings;220219;Perdite/Utili Esercizio Precedente;;N/A_Conti Infrannuali;N/A_conti infrannuali;1405;0;;Bilancio di Verifica;;1.405,00;220219
+CVS;SP;;Retained Earnings;220221;Perdita/Utile d'Esercizio;;Varie Altre Riserve;IX - Utile (perdita) dell'esercizio;-1;0;;Bilancio di Verifica;;-1;220221
+CVS;SP;;Other Reserves;220225;Avanzo di Fusione;;Varie Altre Riserve;AVI - altre riserve distintamente indicate;-19.537.123,11;0;;Bilancio di Verifica;;-19.537.123,11;220225
+CVS;SP;;Other Reserves;220227;Avanzo di Concambio;;Varie Altre Riserve;AVI - altre riserve distintamente indicate;-747.631;0;;Bilancio di Verifica;;-747.631,00;220227
+CVS;SP;;Share Capital;220229;Opening Balance;;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;220229
+CVS;SP;;Share Capital;220233;Riserva FTA;;TBD;TBD;1.075.640,11;0;;Bilancio di Verifica;;1.075.640,11;220233
+CVS;SP;;Share Capital;220235;Riserva OCI;;TBD;TBD;-36.817,82;0;;Bilancio di Verifica;;-36.817,82;220235
+CVS;SP;;Share Capital;220237;Riserva Statutaria;;TBD;TBD;-16.075;0;;Bilancio di Verifica;;-16.075,00;220237
+CVS;SP;;Risk Provisions;240201;Fondo Rischi;;Fondo Per Rischi E Oneri;B.4 - altri;-524;0;;Bilancio di Verifica;;-524;240201
+CVS;SP;;Deferred Tax;240219;Fondo Imposte Differite;;Fondo Per Rischi E Oneri;B.2 - per imposte anche differite;-6.867.686,91;-12.332,93;;Bilancio di Verifica;;-6.880.019,84;240219
+CVS;SP;;TFR and Other Provision;240221;Fondi Trattamento Quiescienza Ed Obblighi  Simili;;Fondo Per Rischi E Oneri;B.4 - altri;0;0;;assente nel grezzo → 0 (nessuna attività);;0;240221
+CVS;SP;;Risk Provisions;240223;Fondo Rischi Altri accantonamenti;;Fondo Per Rischi E Oneri;B.4 - altri;-689.613,15;0;;Bilancio di Verifica;;-689.613,15;240223
+CVS;SP;;Risk Provisions;240225;Fondo Strumenti Finanziari Derivati Passivi;;Fondo Per Rischi E Oneri;B.3 - Strumenti finanziari passivi;-8390,3;0;;Bilancio di Verifica;;-8.390,30;240225
+CVS;SP;;Risk Provisions;240227;Fondo Rischi Cause in Corso;;TBD;TBD;-721.576,75;0;;Bilancio di Verifica;;-721.576,75;240227
+CVS;SP;;TFR and Other Provision;260201;Fondo TFR;;Trattamento Di Fine Rapporto;C - TRATTAMENTO DI FINE RAPPORTO DI LAVORO SUBORDINATO;-952.563,54;-56.206,46;;Bilancio di Verifica;;-1.008.770,00;260201
+CVS;SP;;Gross Debt;280211;Finanziamento Bper Linea Revolving;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280211
+CVS;SP;;Gross Debt;280217;Mps C/Anticipi;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280217
+CVS;SP;;Gross Debt;280221;Finanziamento Bper Linea Senior;;Debiti Verso Banche;D.4 - debiti verso banche;327.623,68;0;;Bilancio di Verifica;;327.623,68;280221
+CVS;SP;;Gross Debt;280225;Mutuo FIN-0492;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280225
+CVS;SP;;Gross Debt;280227;Mutuo Comune di San Vito;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280227
+CVS;SP;;Gross Debt;280229;Mutuo Comune di Sant'Eufemia Maiella;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280229
+CVS;SP;;Gross Debt;280231;Mutuo FIN-1185;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280231
+CVS;SP;;Gross Debt;280233;Mutuo Comune di Lanuvio;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280233
+CVS;SP;;Gross Debt;280235;Mutuo FIN-6355;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280235
+CVS;SP;;Gross Debt;280237;Mutuo FIN-9235;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280237
+CVS;SP;;Gross Debt;280239;Mutuo FIN-9266;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280239
+CVS;SP;;Gross Debt;280241;Mutuo Comune di Polesine Zibello;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280241
+CVS;SP;;Gross Debt;280243;Mutuo FIN-8029;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280243
+CVS;SP;;Gross Debt;280245;Mutuo Comune di Palombara Sabina;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280245
+CVS;SP;;Gross Debt;280247;Mutuo FIN-7024;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280247
+CVS;SP;;Gross Debt;280249;Mutuo Comune di Bellante;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280249
+CVS;SP;;Gross Debt;280251;Mutuo INV-401;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280251
+CVS;SP;;Gross Debt;280253;Mutuo INV-925;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280253
+CVS;SP;;Gross Debt;280255;Mutui CARIGE FIN-2595;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280255
+CVS;SP;;Gross Debt;280257;Mutui CREVAL FIN-8028;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280257
+CVS;SP;;Gross Debt;280259;Mutui INTESA S.PAOLO FIN-6875;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280259
+CVS;SP;;Gross Debt;280261;Mutui CARIGE 94734/003;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280261
+CVS;SP;;Gross Debt;280265;Mutuo FIN-9866;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280265
+CVS;SP;;Gross Debt;280271;Finanziamento Banca Marca 049/237181/01;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280271
+CVS;SP;;Gross Debt;280275;Finanziamento BPM;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280275
+CVS;SP;;Gross Debt;280277;Finanziamento Credit Agricole;;Debiti Verso Banche;D.4 - debiti verso banche;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280277
+CVS;SP;;Gross Debt;280279;Finanziamento Banca Unicredit_Nuovo;;Debiti Verso Banche;D.4 - debiti verso banche;-24.795.591,89;0;;Bilancio di Verifica;;-24.795.591,89;280279
+CVS;SP;;Gross Debt;280401;Finanziamento Volkswagen Bank;;Altri Debiti Finanziari;D.5 - debiti verso altri finanziatori;0;0;;assente nel grezzo → 0 (nessuna attività);;0;280401
+CVS;SP;;Shareholder Financing;280403;Altri Debiti Finanziari;;Altri Debiti Finanziari;D.5 - debiti verso altri finanziatori;-263.994,92;0;;Bilancio di Verifica;;-263.994,92;280403
+CVS;SP;;Gross Debt;280405;Passività correnti per diritto d'uso non correnti;;TBD;TBD;-1.445.322,96;0;;Bilancio di Verifica;;-1.445.322,96;280405
+CVS;SP;;Gross Debt;280407;Passività correnti per diritto d'uso correnti;;TBD;TBD;-696.613,91;0;;Bilancio di Verifica;;-696.613,91;280407
+CVS;SP;;Trade Payables;300203;Fornitori C/Spese Anticipate;;Debiti Verso Fornitori;D.7 - debiti verso fornitori;937,47;0;;Bilancio di Verifica;;937,47;300203
+CVS;SP;;Trade Payables;300205;Fornitori Nazionali;;Debiti Verso Fornitori;D.7 - debiti verso fornitori;-11.376.460,64;-12.098,85;;Bilancio di Verifica;;-11.388.559,49;300205
+CVS;SP;;Trade Payables;300207;Fornitori Esteri;;Debiti Verso Fornitori;D.7 - debiti verso fornitori;-125.938,44;0;;Bilancio di Verifica;;-125.938,44;300207
+CVS;SP;;Other Liabilities;300209;Debiti Intercompany;;N/A_Conti Infrannuali;N/A_conti infrannuali;-555.236,14;0;;Bilancio di Verifica;;-555.236,14;300209
+CVS;SP;;Shareholder Financing;320201;Soci C/Utili;;Debiti Vs. Collegate, Controllate E Altre;D.11 - debiti verso imprese controllanti;0;0;;assente nel grezzo → 0 (nessuna attività);;0;320201
+CVS;SP;;Other Liabilities;320203;Debiti Vs. Imp. Controllate;;Debiti Vs. Collegate, Controllate E Altre;D.11 - debiti verso imprese controllanti;-52,5;0;;Bilancio di Verifica;;-52,5;320203
+CVS;SP;;Other Liabilities;320207;Debiti Vs. Imp. Altre Imprese;;TBD;TBD;-18.872,54;0;;Bilancio di Verifica;;-18.872,54;320207
+CVS;SP;;Other Liabilities;320209;Debiti Vs. Controllante;;Debiti Vs. Collegate, Controllate E Altre;D.11 - debiti verso imprese controllanti;-8.403.086,19;0;;Bilancio di Verifica;;-8.403.086,19;320209
+CVS;SP;;Tax Debit;320401;Erario C/Imposta Sost. Riv. Tfr;;Crediti Tributari;CII.5-bis - crediti tributari;-4441,36;0;;Bilancio di Verifica;;-4.441,36;320401
+CVS;SP;;Tax Debit;320403;Erario C/Ires;;Debiti Tributari;D.12 - debiti tributari;-1.240.534,82;5761,5;;Bilancio di Verifica;;-1.234.773,32;320403
+CVS;SP;;Tax Credit;320405;Regioni C/Irap;;Crediti Tributari;CII.5-bis - crediti tributari;-245.102,92;4339;;Bilancio di Verifica;;-240.763,92;320405
+CVS;SP;;Tax Debit;320407;Erario c/Ritenute lavoratori autonomi;;N/A_Conti Infrannuali;N/A_conti infrannuali;0;-3868,18;;assente nel grezzo → 0 (nessuna attività);;-3.868,18;320407
+CVS;SP;;Tax Credit;320409;Erario C/Iva;;Crediti Tributari;CII.5-bis - crediti tributari;291.886,30;3253,16;;Bilancio di Verifica;;295.139,46;320409
+CVS;SP;;Tax Debit;320411;Other Debiti Tributari;;N/A_Conti Infrannuali;N/A_conti infrannuali;1.777.219,46;0;;Bilancio di Verifica;;1.777.219,46;320411
+CVS;SP;;Tax Debit;320413;Iva su Vendite;;Crediti Tributari;CII.5-bis - crediti tributari;-543.337,47;0;;Bilancio di Verifica;;-543.337,47;320413
+CVS;SP;;Tax Debit;320415;Iva su Vendite Split Payment;;Crediti Tributari;CII.5-bis - crediti tributari;0;0;;assente nel grezzo → 0 (nessuna attività);;0;320415
+CVS;SP;;Tax Debit;320417;Erario c/ritenute su dividendi;;Crediti Tributari;N/A_conti infrannuali;-428.566,25;0;;Bilancio di Verifica;;-428.566,25;320417
+CVS;SP;;Tax Debit;320601;Erario Rit.Acc.Su Prest.Prof.;;Debiti Verso Istituti Di Previdenza;D.12 - debiti tributari;-29.791,33;1725,15;;Bilancio di Verifica;;-28.066,18;320601
+CVS;SP;;Tax Debit;320603;Erario C/Rit. Lavoro Dipendente;;Debiti Verso Istituti Di Previdenza;D.12 - debiti tributari;-62.404,02;-1238,09;;Bilancio di Verifica;;-63.642,11;320603
+CVS;SP;;Tax Debit;320605;Debiti V/Fondi Prev.;;Debiti Verso Istituti Di Previdenza;D.13 - debiti verso istituti di previdenza e di sicurezza sociale;-52.035,17;0;;Bilancio di Verifica;;-52.035,17;320605
+CVS;SP;;Other Liabilities;320611;F.A.S.I.;;TBD;TBD;315,39;0;;Bilancio di Verifica;;315,39;320611
+CVS;SP;;Tax Debit;320613;I.N.P.S. Dipendenti Carico Ditta;;Debiti Verso Istituti Di Previdenza;D.13 - debiti verso istituti di previdenza e di sicurezza sociale;-178.842,75;0;;Bilancio di Verifica;;-178.842,75;320613
+CVS;SP;;Tax Debit;320617;I.N.A.I.L.;;Debiti Verso Istituti Di Previdenza;D.13 - debiti verso istituti di previdenza e di sicurezza sociale;-11.542,30;-338,59;;Bilancio di Verifica;;-11.880,89;320617
+CVS;SP;;Other Liabilities;320803;Dipendenti C/Retribuzione;;Altri Debiti;D.14 - altri debiti;-882,83;-8573,76;;Bilancio di Verifica;;-9.456,59;320803
+CVS;SP;;Shareholder Financing;320811;Soci C/Finanziamenti;;Altri Debiti;D.14 - altri debiti;-10.079.537,04;0;;Bilancio di Verifica;;-10.079.537,04;320811
+CVS;SP;;Trade Payables;320813;Fatture da Ricevere;;Altri Debiti;D.7 - debiti verso fornitori;-3.513.488,77;-31.761,15;;Bilancio di Verifica;;-3.545.249,92;320813
+CVS;SP;;Trade Receivables;320815;Clienti c/anticipi;;Altri Debiti;D.14 - altri debiti;646,59;-5000;;Bilancio di Verifica;;-4.353,41;320815
+CVS;SP;;Other Liabilities;320817;Debiti v/Dipendenti CO.CO.CO;;Altri Debiti;D.14 - altri debiti;345,42;0;;Bilancio di Verifica;;345,42;320817
+CVS;SP;;Trade Payables;320819;Note Di Credito Da Emettere;;Altri Debiti;CII.1 - verso clienti;-553.689,18;0;;Bilancio di Verifica;;-553.689,18;320819
+CVS;SP;;Other Liabilities;320821;Debiti Vs Altri;;Altri Debiti;D.14 - altri debiti;-185.691,83;-2229,23;;Bilancio di Verifica;;-187.921,06;320821
+CVS;SP;;Other Liabilities;320825;Dipendenti C/Retribuzione 13ma;;Altri Debiti;D.14 - altri debiti;-391.531,25;0;;Bilancio di Verifica;;-391.531,25;320825
+CVS;SP;;Trade Payables;320827;Debito V/Comune di Spezzano Albanese;;TBD;TBD;-5871,6;0;;Bilancio di Verifica;;-5.871,60;320827
+CVS;SP;;Trade Receivables;320829;Acconto cliente Comune Di Meolo;;TBD;TBD;-19.406,54;0;;Bilancio di Verifica;;-19.406,54;320829
+CVS;SP;;Trade Receivables;320831;Acconto cliente Comune Di San Donà;;TBD;TBD;-223.335,30;0;;Bilancio di Verifica;;-223.335,30;320831
+CVS;SP;;Other Liabilities;340213;Debiti Per Ferie Maturate E Non Godute;;Altri Debiti;D.14 - altri debiti;-1.001.544,81;0;;Bilancio di Verifica;;-1.001.544,81;340213
+CVS;SP;;Other Liabilities;340215;Debiti Per Contributi Su Ferie Maturate;;Debiti Verso Istituti Di Previdenza;D.13 - debiti verso istituti di previdenza e di sicurezza sociale;-263.435,83;0;;Bilancio di Verifica;;-263.435,83;340215
+CVS;SP;;Other Liabilities;340217;Debiti V/Cessionari Stipendio;;Altri Debiti;D.14 - altri debiti;-7498,69;0;;Bilancio di Verifica;;-7.498,69;340217
+CVS;SP;;Other Credit;360201;Risconti Attivi;;Ratei E Risconti Attivi;D - RATEI E RISCONTI ATTIVI;314.967,42;5531,99;;Bilancio di Verifica;;320.499,41;360201
+CVS;SP;;Other Liabilities;360203;Ratei Passivi;;Ratei E Risconti Passivi;E - RATEI E RISCONTI PASSIVI;-22.386,38;0;;Bilancio di Verifica;;-22.386,38;360203
+CVS;CE;Revenues;Canone;620201;Ricavi;;Ricavi Delle Vendite E Delle Prestazioni;A1 - ricavi delle vendite e delle prestazioni;0;0;;spacchettato per classe sotto;;0;620201
+CVS;CE;Revenues;Canone;620203;Ricavi I/C;;N/A_Conti Infrannuali;N/A_conti infrannuali;-789.276,15;0;;Bilancio di Verifica;;-789.276,15;620203
+CVS;CE;R;Costruzioni Interne;640201;Capit. Costi di Imm. Immat.;;Incrementi Di Immobilizzazioni Per Lavori Interni;A4 - incrementi di immobilizzazioni per lavori interni;-2.824.723,56;0;;Bilancio di Verifica;;-2.824.723,56;640201
+CVS;CE;R;Other Revenues;660201;Sconti, Ribassi e Abbuoni Attivi;;Altri Ricavi;#NAME?;-7206,23;-0,97;;Bilancio di Verifica;;-7.207,20;660201
+CVS;CE;R;Other Revenues;660203;Altri Ricavi E Proventi Vari;;Altri Ricavi;#NAME?;-9498,5;-3770;;Bilancio di Verifica;;-13.268,50;660203
+CVS;CE;C;Financial Income;660205;Differenze Di Cambio Attive;;Altri Ricavi;C. 17.bis - (utili) / perdite su cambi;0;0;;assente nel grezzo → 0 (nessuna attività);;0;660205
+CVS;CE;R;Other Revenues;660207;Rimborso spese da bolletini postali;;Altri Ricavi;#NAME?;0;0;;assente nel grezzo → 0 (nessuna attività);;0;660207
+CVS;CE;R;Other Revenues;660403;Plusvalenze;;Altri Ricavi;#NAME?;-3152,3;0;;Bilancio di Verifica;;-3.152,30;660403
+CVS;CE;R;Extraordinary Item (Attive);660407;Sopravvenienze Attive;;Altri Ricavi;#NAME?;-23.438,42;-70;;Bilancio di Verifica;;-23.508,42;660407
+CVS;CE;R;Extraordinary Item (Attive);660409;Sopravvenienze Attive Ord. Inded.;;Altri Ricavi;#NAME?;-1691,99;0;;Bilancio di Verifica;;-1.691,99;660409
+CVS;CE;C;Other Revenues;660411;Contributi In C/Impianti;;Altri Ricavi;#NAME?;0;-1980,62;;assente nel grezzo → 0 (nessuna attività);;-1.980,62;660411
+CVS;CE;R;Other Revenues;660413;Contributi In C/Esercizio;;Altri Ricavi;contributi in conto esercizio;-18.677,46;0;;Bilancio di Verifica;;-18.677,46;660413
+CVS;CE;C;Costi Diretti;680201;Merci C/Acquisti Nazionali;;Costi Per Materie Prime;B6 - per materie prime, sussidiarie, di consumo e di merci;7.647.933,29;75.376,38;;Bilancio di Verifica;;7.723.309,67;680201
+CVS;CE;C;Costi Diretti;680205;Merci C/Acquisti Extra Ue;;Costi Per Materie Prime;B6 - per materie prime, sussidiarie, di consumo e di merci;0;0;;assente nel grezzo → 0 (nessuna attività);;0;680205
+CVS;CE;C;Canone;680207;Beni Inferiori A 516,46 Euro;;Costi Per Materie Prime;B6 - per materie prime, sussidiarie, di consumo e di merci;0;0;;assente nel grezzo → 0 (nessuna attività);;0;680207
+CVS;CE;R;Costruzioni Interne;680209;Capitalizzazioni costi di materie prime;;TBD;TBD;-2.001.545,22;0;;Bilancio di Verifica;;-2.001.545,22;680209
+CVS;CE;C;Overheads;680401;Acquisti Vari;;TBD;TBD;81,89;0;;Bilancio di Verifica;;81,89;680401
+CVS;CE;C;Overheads;680403;Spese Accessorie Su Acquisti;;TBD;TBD;0;220;;assente nel grezzo → 0 (nessuna attività);;220;680403
+CVS;CE;C;Overheads;680601;Carburante;;Costi Per Materie Prime;B6 - per materie prime, sussidiarie, di consumo e di merci;79.349,64;2683,18;;Bilancio di Verifica;;82.032,82;680601
+CVS;CE;C;Overheads;680603;Carburante Parz. Ded.;;Costi Per Materie Prime;B6 - per materie prime, sussidiarie, di consumo e di merci;173.653,03;1832,81;;Bilancio di Verifica;;175.485,84;680603
+CVS;CE;C;Costi Diretti;700201;Lavoraz. Di Terzi P/Prod. Beni;;Costi Per Servizi;B7 - per servizi;13.306,66;12.925;;Bilancio di Verifica;;26.231,66;700201
+CVS;CE;C;Costi Diretti;700203;Lavoraz. Di Terzi P/Prod. Servizi;;Costi Per Servizi;B7 - per servizi;11.105.304,79;151.955,07;;Bilancio di Verifica;;11.257.259,86;700203
+CVS;CE;C;Costi Diretti;700205;Manut. E Rip. Su Beni Di Prop.;;Costi Per Servizi;B7 - per servizi;9061,2;5500,9;;Bilancio di Verifica;;14.562,10;700205
+CVS;CE;C;Costi Diretti;700207;Manut. E Rip. Su Beni Di Prop. Parz. Ded.;;Costi Per Servizi;B7 - per servizi;8491,29;479,67;;Bilancio di Verifica;;8.970,96;700207
+CVS;CE;C;Overheads;700209;Manut. E Rip. Autocarri;;Costi Per Servizi;B7 - per servizi;58.945,79;2000;;Bilancio di Verifica;;60.945,79;700209
+CVS;CE;C;Overheads;700211;Manut. E Rip. Autovetture Deduc.;;Costi Per Servizi;B7 - per servizi;5279,23;0;;Bilancio di Verifica;;5.279,23;700211
+CVS;CE;C;Overheads;700213;Manut. E Rip. Ord. Beni Di Terzi;;Costi Per Servizi;B7 - per servizi;77.150,23;0;;Bilancio di Verifica;;77.150,23;700213
+CVS;CE;C;Overheads;700215;Manut. E Rip. Straord. Beni Di Terzi;;Costi Per Servizi;B7 - per servizi;0;0;;assente nel grezzo → 0 (nessuna attività);;0;700215
+CVS;CE;R;Costruzioni Interne;700217;Capitalizzazioni costi per servizi;;TBD;TBD;-5.877.412,68;0;;Bilancio di Verifica;;-5.877.412,68;700217
+CVS;CE;;Overheads;700401;Servizi Di Lavoro In Somministrazione;;Costi Per Servizi;B7 - per servizi;25.298,76;0;;Bilancio di Verifica;;25.298,76;700401
+CVS;CE;C;Personnel Costs;700403;Compensi A Collaboratori Co.Co.Co.;;Costi Per Servizi;B7 - per servizi;242.668,54;15.283,31;;Bilancio di Verifica;;257.951,85;700403
+CVS;CE;C;Overheads;700405;Comp. Prof. Attinenti  Attivita' Senza Rit.;;Costi Per Servizi;B7 - per servizi;568.887,39;0;;Bilancio di Verifica;;568.887,39;700405
+CVS;CE;C;Overheads;700407;Comp. Prof. Attinenti  Attivita' C/Rit.;;Costi Per Servizi;B7 - per servizi;1.078.802,76;0;;Bilancio di Verifica;;1.078.802,76;700407
+CVS;CE;C;Overheads;700409;Comp. Prof. Attinenti Attivita';;Costi Per Servizi;B7 - per servizi;403.472,76;15.306;;Bilancio di Verifica;;418.778,76;700409
+CVS;CE;C;Personnel Costs;700411;Contributi Inps Collaboratori Co.Co.Co;;Costi Per Servizi;B7 - per servizi;39.190,76;3568,08;;Bilancio di Verifica;;42.758,84;700411
+CVS;CE;C;Costi Diretti;700601;Spesa Energia Commesse;;Costi Per Servizi;B7 - per servizi;9.600.242,38;151.289,26;;Bilancio di Verifica;;9.751.531,64;700601
+CVS;CE;C;Overheads;700603;Spesa Energia Struttura;;Costi Per Servizi;B7 - per servizi;23.936,02;2878,92;;Bilancio di Verifica;;26.814,94;700603
+CVS;CE;C;Overheads;700801;Commissioni Bancarie;;Costi Per Servizi;B7 - per servizi;80.784,01;0;;Bilancio di Verifica;;80.784,01;700801
+CVS;CE;C;Overheads;700803;Cancelleria;;Costi Per Servizi;B7 - per servizi;12.047,23;335,88;;Bilancio di Verifica;;12.383,11;700803
+CVS;CE;C;Overheads;700805;Acqua;;Costi Per Servizi;B7 - per servizi;7274,19;29,62;;Bilancio di Verifica;;7.303,81;700805
+CVS;CE;C;Overheads;700807;Gas;;Costi Per Servizi;B7 - per servizi;31.325,50;0;;Bilancio di Verifica;;31.325,50;700807
+CVS;CE;C;Overheads;700809;Servizi Di Gestione Immobili;;Costi Per Servizi;B7 - per servizi;73.216,83;0;;Bilancio di Verifica;;73.216,83;700809
+CVS;CE;C;Overheads;700811;Pedaggi Autostradali;;Costi Per Servizi;B7 - per servizi;69,9;0;;Bilancio di Verifica;;69,9;700811
+CVS;CE;C;Overheads;700813;Pedaggi Autostradali  Parz. Ded.;;Costi Per Servizi;B7 - per servizi;35.087,27;0;;Bilancio di Verifica;;35.087,27;700813
+CVS;CE;C;Overheads;700815;Spese Per Trasferte;;Costi Per Servizi;B7 - per servizi;119.529,99;0;;Bilancio di Verifica;;119.529,99;700815
+CVS;CE;C;Personnel Costs;700817;Contributi Ad Assoc. Sindacali;;Costi Per Servizi;B7 - per servizi;0;0;;assente nel grezzo → 0 (nessuna attività);;0;700817
+CVS;CE;C;Overheads;700819;Altre Spese Generali;;Costi Per Servizi;B7 - per servizi;54.388,60;57,9;;Bilancio di Verifica;;54.446,50;700819
+CVS;CE;C;Overheads;700821;Abbonamenti Riviste, Giornali;;Costi Per Servizi;B7 - per servizi;9,52;305;;Bilancio di Verifica;;314,52;700821
+CVS;CE;C;Personnel Costs;700823;Contributi Ad Assoc. di Categoria;;TBD;TBD;7207,96;0;;Bilancio di Verifica;;7.207,96;700823
+CVS;CE;C;Overheads;701201;Trasporti Su Acquisti;;Costi Per Servizi;B7 - per servizi;60.145,33;461,11;;Bilancio di Verifica;;60.606,44;701201
+CVS;CE;C;Overheads;701203;Trasporti Su Vendite;;Costi Per Servizi;B7 - per servizi;0;0;;assente nel grezzo → 0 (nessuna attività);;0;701203
+CVS;CE;C;Overheads;701401;Spese Doganali;;Costi Per Servizi;B7 - per servizi;0;0;;assente nel grezzo → 0 (nessuna attività);;0;701401
+CVS;CE;C;Overheads;701601;Provvigioni A Intermediari;;Costi Per Servizi;B7 - per servizi;643.268;0;;Bilancio di Verifica;;643.268,00;701601
+CVS;CE;C;Overheads;701603;Spese Di Rappresentanza Non Ded.;;Costi Per Servizi;B7 - per servizi;131.797,70;123,94;;Bilancio di Verifica;;131.921,64;701603
+CVS;CE;C;Overheads;701605;Spese Di Rappresentanza Ded.;;Costi Per Servizi;B7 - per servizi;6617,28;0;;Bilancio di Verifica;;6.617,28;701605
+CVS;CE;C;Overheads;701607;Pubb. E Markt;;Costi Per Servizi;B7 - per servizi;161.022,30;0;;Bilancio di Verifica;;161.022,30;701607
+CVS;CE;C;Personnel Costs;701803;Contributi Inps Amministratori;;Costi Per Servizi;B7 - per servizi;0;0;;assente nel grezzo → 0 (nessuna attività);;0;701803
+CVS;CE;C;Personnel Costs;701805;Contributi Inail Amministratore;;Costi Per Servizi;B7 - per servizi;852,61;0;;Bilancio di Verifica;;852,61;701805
+CVS;CE;C;Overheads;701807;Compensi Sindaci;;Costi Per Servizi;B7 - per servizi;1300;0;;Bilancio di Verifica;;1.300,00;701807
+CVS;CE;C;Overheads;701811;Revisione Contabile;;Costi Per Servizi;B7 - per servizi;6820;0;;Bilancio di Verifica;;6.820,00;701811
+CVS;CE;C;Overheads;702001;Spese Di Consulenza;;Costi Per Servizi;B7 - per servizi;1.355.538,96;0;;Bilancio di Verifica;;1.355.538,96;702001
+CVS;CE;C;Overheads;702003;Tenuta Paghe;;Costi Per Servizi;B7 - per servizi;127.915;8054,4;;Bilancio di Verifica;;135.969,40;702003
+CVS;CE;C;Overheads;702201;Spese Telefoniche;;Costi Per Servizi;B7 - per servizi;70.568,70;1221,34;;Bilancio di Verifica;;71.790,04;702201
+CVS;CE;C;Overheads;702203;Spese Telefoniche - Numero Verde;;Costi Per Servizi;B7 - per servizi;19.464,10;0;;Bilancio di Verifica;;19.464,10;702203
+CVS;CE;C;Overheads;702401;Canoni Software, Licenze E Simili;;Costi Per Servizi;B7 - per servizi;222.003,35;1108,84;;Bilancio di Verifica;;223.112,19;702401
+CVS;CE;C;Overheads;702403;Assicurazioni;;Costi Per Servizi;B7 - per servizi;18.339,95;3212,58;;Bilancio di Verifica;;21.552,53;702403
+CVS;CE;C;Overheads;702405;Assicurazioni R.C.;;Costi Per Servizi;B7 - per servizi;30.902,54;2731,85;;Bilancio di Verifica;;33.634,39;702405
+CVS;CE;C;Overheads;702407;Assicurazioni R.C.A. Parz. Deduc.;;Costi Per Servizi;B7 - per servizi;15.259,39;734,92;;Bilancio di Verifica;;15.994,31;702407
+CVS;CE;C;Overheads;702411;Altre Assicurazioni;;Costi Per Servizi;B7 - per servizi;191.525,62;441,51;;Bilancio di Verifica;;191.967,13;702411
+CVS;CE;C;Overheads;720201;Fitti Passivi;;Costi Per Godimento Beni Di Terzi;B8 - per godimento di beni di terzi;264.386,57;0;;Bilancio di Verifica;;264.386,57;720201
+CVS;CE;C;Overheads;720401;Noleggi Operativi;;Costi Per Godimento Beni Di Terzi;B8 - per godimento di beni di terzi;51.694,26;0;;Bilancio di Verifica;;51.694,26;720401
+CVS;CE;C;Overheads;720403;Noleggi Deducibili;;Costi Per Godimento Beni Di Terzi;B8 - per godimento di beni di terzi;47.795,17;957,67;;Bilancio di Verifica;;48.752,84;720403
+CVS;CE;C;Overheads;720405;Altri Noleggi;;Costi Per Godimento Beni Di Terzi;B8 - per godimento di beni di terzi;422.809,09;0;;Bilancio di Verifica;;422.809,09;720405
+CVS;CE;C;Overheads;720601;Canoni Leasing Operativo;;Costi Per Godimento Beni Di Terzi;B8 - per godimento di beni di terzi;17.675,22;0;;Bilancio di Verifica;;17.675,22;720601
+CVS;CE;C;Overheads;720605;Canoni Leasing Deducibile;;TBD;TBD;6500;0;;Bilancio di Verifica;;6.500,00;720605
+CVS;CE;C;Personnel Costs;740201;Salari E Stipendi - Operai;;Salari E Stipendi;89a - salari e stipendi;822.904,77;69.448,05;;Bilancio di Verifica;;892.352,82;740201
+CVS;CE;C;Personnel Costs;740203;Salari E Stipendi - Impiegati;;Salari E Stipendi;89a - salari e stipendi;2.095.339,18;17.212,78;;Bilancio di Verifica;;2.112.551,96;740203
+CVS;CE;C;Personnel Costs;740205;Salari E Stipendi - Dirigenti;;Salari E Stipendi;89a - salari e stipendi;842.556,66;0;;Bilancio di Verifica;;842.556,66;740205
+CVS;CE;C;Personnel Costs;740207;Rimborsi Da Nota Spese;;Salari E Stipendi;89a - salari e stipendi;101.489,14;0;;Bilancio di Verifica;;101.489,14;740207
+CVS;CE;C;Personnel Costs;740209;Salari E Stipendi - 13ma Operai;;N/A_Conti Infrannuali;N/A_conti infrannuali;79.732,86;0;;Bilancio di Verifica;;79.732,86;740209
+CVS;CE;C;Personnel Costs;740211;Salari E Stipendi - 13ma Impiegati;;N/A_Conti Infrannuali;N/A_conti infrannuali;225.607,77;0;;Bilancio di Verifica;;225.607,77;740211
+CVS;CE;C;Personnel Costs;740213;Salari E Stipendi - 13ma Dirigenti;;N/A_Conti Infrannuali;N/A_conti infrannuali;89.304,81;0;;Bilancio di Verifica;;89.304,81;740213
+CVS;CE;R;Costruzioni Interne;740215;Capitalizzazioni costi del personale;;TBD;TBD;-2.475.534,92;0;;Bilancio di Verifica;;-2.475.534,92;740215
+CVS;CE;C;Personnel Costs;740401;Ferie Maturate E Non Godute;;Altri Costi;89a - salari e stipendi;477.601,93;0;;Bilancio di Verifica;;477.601,93;740401
+CVS;CE;C;Personnel Costs;740601;Oneri Previdenziali I.N.P.S. - Operai;;Oneri Sociali;89b - oneri sociali;235.109,89;19.015,70;;Bilancio di Verifica;;254.125,59;740601
+CVS;CE;C;Personnel Costs;740603;Altri Oneri Previdenziali;;TBD;TBD;0;520;;assente nel grezzo → 0 (nessuna attività);;520;740603
+CVS;CE;C;Personnel Costs;740605;Contributi Fasi;;N/A_Conti Infrannuali;N/A_conti infrannuali;20.720;0;;Bilancio di Verifica;;20.720,00;740605
+CVS;CE;C;Personnel Costs;740607;Contributi Previndai;;N/A_Conti Infrannuali;N/A_conti infrannuali;25.573,24;0;;Bilancio di Verifica;;25.573,24;740607
+CVS;CE;C;Personnel Costs;740609;Oneri Previdenziali I.N.P.S. - Dirigenti;;Oneri Sociali;89b - oneri sociali;336.838,91;0;;Bilancio di Verifica;;336.838,91;740609
+CVS;CE;C;Personnel Costs;740611;Oneri Previdenziali I.N.P.S. - Impiegati;;Oneri Sociali;89b - oneri sociali;664.931,25;3489,92;;Bilancio di Verifica;;668.421,17;740611
+CVS;CE;C;Personnel Costs;740801;Oneri Sociali Inail;;Oneri Sociali;89b - oneri sociali;34.694,67;0;;Bilancio di Verifica;;34.694,67;740801
+CVS;CE;C;Personnel Costs;741001;Oneri Sociali Ferie Maturate E Non Godute;;Oneri Sociali;89b - oneri sociali;130.549,24;0;;Bilancio di Verifica;;130.549,24;741001
+CVS;CE;C;Personnel Costs;741201;Trattamento Di Fine Rapporto;;Tfr;B9c - trattamento di fine rapporto;140.397,95;7392,4;;Bilancio di Verifica;;147.790,35;741201
+CVS;CE;C;Personnel Costs;741203;Tfr Destinato A Fondo Pensione;;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;741203
+CVS;CE;C;Personnel Costs;741401;Bonus;;Costi Del Personale;89a - salari e stipendi;544.000;0;;Bilancio di Verifica;;544.000,00;741401
+CVS;CE;C;Personnel Costs;741601;Buoni Pasto;;Altri Costi;B7 - per servizi;205.217,04;0;;Bilancio di Verifica;;205.217,04;741601
+CVS;CE;C;Overheads;741605;Spese Cellulari;;Altri Costi;B7 - per servizi;38.032,05;1525,56;;Bilancio di Verifica;;39.557,61;741605
+CVS;CE;C;Personnel Costs;741607;Welfare;;Altri Costi;B7 - per servizi;97.340,13;0;;Bilancio di Verifica;;97.340,13;741607
+CVS;CE;C;Personnel Costs;741801;Formazione Del Personale;;Altri Costi;B7 - per servizi;57.424,50;240;;Bilancio di Verifica;;57.664,50;741801
+CVS;CE;C;Overheads;741803;Head Hunter;;Altri Costi;B7 - per servizi;56.090;0;;Bilancio di Verifica;;56.090,00;741803
+CVS;CE;C;Personnel Costs;742001;Trattamento Di Quiescenza E Simili - Operai;;Trattamento Di Fine Rapporto;B9c - trattamento di fine rapporto;5151,19;0;;Bilancio di Verifica;;5.151,19;742001
+CVS;CE;C;Personnel Costs;742003;Altri Costi Del Personale;;TBD;TBD;23.760,71;0;;Bilancio di Verifica;;23.760,71;742003
+CVS;CE;C;Personnel Costs;742005;Trattamento Di Quiescenza E Simili - Dirigenti;;Trattamento Di Fine Rapporto;B9c - trattamento di fine rapporto;77.938,91;0;;Bilancio di Verifica;;77.938,91;742005
+CVS;CE;C;Personnel Costs;742009;Trattamento Di Quiescenza E Simili - Impiegati;;Trattamento Di Fine Rapporto;B9c - trattamento di fine rapporto;71.459,19;0;;Bilancio di Verifica;;71.459,19;742009
+CVS;CE;C;Depreciation and amortization;760201;Amm.To Lic. Uso Soft.;Software;Ammortamento Imm. Immateriali;810a - ammortamento delle immobilizzazioni immateriali;627.224,13;0;;Bilancio di Verifica;;627.224,13;760201
+CVS;CE;C;Depreciation and amortization;760401;Amm.To Costi D'impianto;Impianto e ampliamento;Ammortamento Imm. Immateriali;810a - ammortamento delle immobilizzazioni immateriali;1102;0;;Bilancio di Verifica;;1.102,00;760401
+CVS;CE;C;Depreciation and amortization;760601;Amm.To Lav. Straord. Beni Di Terzi;Lavori su beni di terzi;Ammortamento Imm. Immateriali;810a - ammortamento delle immobilizzazioni immateriali;4.362.356,04;29.063,68;;Bilancio di Verifica;;4.391.419,72;760601
+CVS;CE;C;Depreciation and amortization;760801;Amm.To Avviamento;Avviamento;Ammortamento Imm. Immateriali;810a - ammortamento delle immobilizzazioni immateriali;1239;0;;Bilancio di Verifica;;1.239,00;760801
+CVS;CE;C;Depreciation and amortization;761001;Amm.to Concessioni, Licenze, Marchi e Diritti Simili;Concessioni licenze e marchi;Ammortamento Imm. Immateriali;810a - ammortamento delle immobilizzazioni immateriali;29.686,15;0;;Bilancio di Verifica;;29.686,15;761001
+CVS;CE;C;Depreciation and amortization;761201;Amm.to Costi di ricerca e sviluppo;Costi di ricerca e sviluppo;Ammortamento Imm. Immateriali;810a - ammortamento delle immobilizzazioni immateriali;0;0;;assente nel grezzo → 0 (nessuna attività);;0;761201
+CVS;CE;C;Depreciation and amortization;761601;Amm.to Altri Costi Ad Util. Plur. Da Amm.;Impianti e macchinari;TBD;TBD;1797;0;;Bilancio di Verifica;;1.797,00;761601
+CVS;CE;C;Depreciation and amortization;761605;Ammortamenti Diritti D'uso;Leasing;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;761605
+CVS;CE;C;Depreciation and amortization;761607;Amm.To lista clienti;Avviamento;TBD;TBD;1.149.429,60;0;;Bilancio di Verifica;;1.149.429,60;761607
+CVS;CE;C;Depreciation and amortization;780201;Amm.To Ord. Fabb. Ind.Li E Comm.;Terreni e fabbricati;Ammortamento Imm. Materiali;B10b - ammortamento delle immobilizzazioni materiali;20.291,61;7702,66;;Bilancio di Verifica;;27.994,27;780201
+CVS;CE;C;Depreciation and amortization;780203;Amm.To Ord. Fabb. Ind.Li E Comm. (MiniPia);Terreni e fabbricati;Ammortamento Imm. Materiali;B10b - ammortamento delle immobilizzazioni materiali;10.848,45;0;;Bilancio di Verifica;;10.848,45;780203
+CVS;CE;C;Depreciation and amortization;780401;Amm.To Ord. Cost. Legg.;Terreni e fabbricati;Ammortamento Imm. Materiali;B10b - ammortamento delle immobilizzazioni materiali;2477,78;0;;Bilancio di Verifica;;2.477,78;780401
+CVS;CE;C;Depreciation and amortization;780601;Amm.To Ord. Imp. Gen.;Impianti e macchinari;Ammortamento Imm. Materiali;B10b - ammortamento delle immobilizzazioni materiali;10.599,88;272,85;;Bilancio di Verifica;;10.872,73;780601
+CVS;CE;C;Depreciation and amortization;780603;Amm.To Ord. Imp. Specifici;Impianti e macchinari;N/A_Conti Infrannuali;N/A_conti infrannuali;22.793,41;0;;Bilancio di Verifica;;22.793,41;780603
+CVS;CE;C;Depreciation and amortization;780801;Amm.To Ord. Macc.;Impianti e macchinari;Ammortamento Imm. Materiali;B10b - ammortamento delle immobilizzazioni materiali;0;2330,14;;assente nel grezzo → 0 (nessuna attività);;2.330,14;780801
+CVS;CE;C;Depreciation and amortization;781001;Amm.To Ord. Att. Ind.Li E Comm.;Attrezzature industriali e commerciali;Ammortamento Imm. Materiali;B10b - ammortamento delle immobilizzazioni materiali;55.735,82;315,42;;Bilancio di Verifica;;56.051,24;781001
+CVS;CE;C;Depreciation and amortization;781201;Amm.To Ord. Mob.E Mac. Ord. Uff.;Ufficio;Ammortamento Imm. Materiali;B10b - ammortamento delle immobilizzazioni materiali;20.604,49;0;;Bilancio di Verifica;;20.604,49;781201
+CVS;CE;C;Depreciation and amortization;781401;Amm.To Ord. Macc. Elettrom. Uff.;Ufficio;Ammortamento Imm. Materiali;B10b - ammortamento delle immobilizzazioni materiali;22.651,93;595,31;;Bilancio di Verifica;;23.247,24;781401
+CVS;CE;C;Depreciation and amortization;781801;Amm.To Ord. Autocarri/Autovetture;Veicoli;Ammortamento Imm. Materiali;B10b - ammortamento delle immobilizzazioni materiali;13.040,61;10.119,45;;Bilancio di Verifica;;23.160,06;781801
+CVS;CE;C;Depreciation and amortization;782001;Amm.To Ord. Autovetture;Veicoli;Ammortamento Imm. Materiali;B10b - ammortamento delle immobilizzazioni materiali;2941,77;0;;Bilancio di Verifica;;2.941,77;782001
+CVS;CE;C;Depreciation and amortization;782401;Amm.To Appar. Radiomobili;Impianti e macchinari;TBD;TBD;897,83;0;;Bilancio di Verifica;;897,83;782401
+CVS;CE;C;Depreciation and amortization;782801;Ammortamento Arredamento;Ufficio;Ammortamento Imm. Materiali;B10b - ammortamento delle immobilizzazioni materiali;34,2;878,79;;Bilancio di Verifica;;912,99;782801
+CVS;CE;C;Depreciation and amortization;783001;Amm.To Beni Inferiori Ai 516,46 Euro;Ufficio;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;783001
+CVS;CE;C;Costi Diretti;800205;Materie Prime C/Rim Finali;;Variazione Delle Rimanenze Materie Prime, Suss.;B11 - variazioni delle rimanenze di materie prime, sussidiarie, di consumo e merci;-5.244.545,07;-111.115,03;;Bilancio di Verifica;;-5.355.660,10;800205
+CVS;CE;C;Costi Diretti;800405;Materie Prime C/Rim Iniziali;;Variazione Delle Rimanenze Materie Prime, Suss.;B11 - variazioni delle rimanenze di materie prime, sussidiarie, di consumo e merci;2.131.263,21;123.249,95;;Bilancio di Verifica;;2.254.513,16;800405
+CVS;CE;C;Bad debt and other provisions;820201;Acc.To Su Fond. Rischi;;Accantonamenti ;B12 - accantonamenti per rischi ;0;0;;assente nel grezzo → 0 (nessuna attività);;0;820201
+CVS;CE;C;Bad debt and other provisions;820203;Acc.To Su Fond. Sval. Crediti;;Svalutazione Crediti;B10d - svalutazioni dei crediti compresi nell'attivo circolante e delle disponibilità liquide;0;0;;assente nel grezzo → 0 (nessuna attività);;0;820203
+CVS;CE;C;Bad debt and other provisions;820403;Sval. Di Titoli Non  Partecipazioni;;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;820403
+CVS;CE;;Overheads;840201;Oneri Contrattuali;;Oneri Diversi Di Gestione;B14 - oneri diversi di gestione;27.236,49;0;;Bilancio di Verifica;;27.236,49;840201
+CVS;CE;C;Overheads;840401;Tassa Di Proprieta' Autoveicoli;;Oneri Diversi Di Gestione;B14 - oneri diversi di gestione;1104,6;140,83;;Bilancio di Verifica;;1.245,43;840401
+CVS;CE;C;Overheads;840403;Tassa Prop.Veicoli Parz.Ded.;;Oneri Diversi Di Gestione;B14 - oneri diversi di gestione;11.383,67;22,01;;Bilancio di Verifica;;11.405,68;840403
+CVS;CE;C;Overheads;840601;Imposta di bollo;;Oneri Diversi Di Gestione;B14 - oneri diversi di gestione;1910,05;222,76;;Bilancio di Verifica;;2.132,81;840601
+CVS;CE;C;Overheads;860201;Minusvalenze;;Oneri Diversi Di Gestione;B14 - oneri diversi di gestione;0;0;;assente nel grezzo → 0 (nessuna attività);;0;860201
+CVS;CE;C;Extraordinary Item (Attive);860205;Sopravvenienze Passive;;Oneri Diversi Di Gestione;B14 - oneri diversi di gestione;0;0;;assente nel grezzo → 0 (nessuna attività);;0;860205
+CVS;CE;C;Extraordinary Item (Attive);860207;Sopravvenienze Passive Ord. Inded.;;Oneri Diversi Di Gestione;B14 - oneri diversi di gestione;22.519,83;0;;Bilancio di Verifica;;22.519,83;860207
+CVS;CE;C;Overheads;860209;Differenze Di Cambio Passive;;N/A_Conti Infrannuali;N/A_conti infrannuali;172,36;0;;Bilancio di Verifica;;172,36;860209
+CVS;CE;C;Overheads;880201;Imposta Imu;;Oneri Diversi Di Gestione;B14 - oneri diversi di gestione;3109;1548;;Bilancio di Verifica;;4.657,00;880201
+CVS;CE;C;Overheads;880203;Tassa Sui Rifiuti;;Oneri Diversi Di Gestione;B14 - oneri diversi di gestione;3015,38;1166;;Bilancio di Verifica;;4.181,38;880203
+CVS;CE;C;Taxes overheads;880205;Altre Imposte E Tasse Ded.;;Oneri Diversi Di Gestione;B14 - oneri diversi di gestione;140.731,57;1552,95;;Bilancio di Verifica;;142.284,52;880205
+CVS;CE;C;Taxes overheads;880207;Altre Imposte E Tasse Inded.;;Oneri Diversi Di Gestione;B14 - oneri diversi di gestione;166.401,98;0;;Bilancio di Verifica;;166.401,98;880207
+CVS;CE;C;Overheads;880209;Tasse Di Concessione Governat.;;Oneri Diversi Di Gestione;B14 - oneri diversi di gestione;2375,68;309,87;;Bilancio di Verifica;;2.685,55;880209
+CVS;CE;C;Overheads;880211;Diritti Camerali;;Oneri Diversi Di Gestione;B14 - oneri diversi di gestione;3568,16;230;;Bilancio di Verifica;;3.798,16;880211
+CVS;CE;C;Overheads;880401;Omaggi Passivi;;Oneri Diversi Di Gestione;B14 - oneri diversi di gestione;0;0;;assente nel grezzo → 0 (nessuna attività);;0;880401
+CVS;CE;C;Overheads;880601;Sconti, Ribassi E  Abbuoni Passivi;;Oneri Diversi Di Gestione;B14 - oneri diversi di gestione;-112,46;4,97;;Bilancio di Verifica;;-107,49;880601
+CVS;CE;C;Overheads;880801;Multe E Ammende;;Oneri Diversi Di Gestione;B14 - oneri diversi di gestione;0;0;;assente nel grezzo → 0 (nessuna attività);;0;880801
+CVS;CE;C;Overheads;880803;Multe E Ammende Indeducibili;;Oneri Diversi Di Gestione;B14 - oneri diversi di gestione;5236,02;774,99;;Bilancio di Verifica;;6.011,01;880803
+CVS;CE;C;Overheads;881001;Erog. Liberali Ded.;;Oneri Diversi Di Gestione;B14 - oneri diversi di gestione;24.265;200;;Bilancio di Verifica;;24.465,00;881001
+CVS;CE;C;Financial Income;900201;Differenziale Derivati Di Copertura;;Altri Proventi Finanziari;C16.d - proventi diversi dai precedenti;-214.475,36;0;;Bilancio di Verifica;;-214.475,36;900201
+CVS;CE;R;Financial Income;900205;Proventi Da Titoli In  Attivo Circolante Non  Partecipazioni;;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;900205
+CVS;CE;R;Financial Income;900209;Interessi Attivi;;Altri Proventi Finanziari;C16.d - proventi diversi dai precedenti;-19.111,54;0;;Bilancio di Verifica;;-19.111,54;900209
+CVS;CE;R;Financial Income;900211;Int. Att. Tit. Red. Fisso  No Imp. Sos.;;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;900211
+CVS;CE;R;Financial Income;900219;Altri Proventi Da Crediti Da Altri;;Altri Proventi Finanziari;C16.d - proventi diversi dai precedenti;0;0;;assente nel grezzo → 0 (nessuna attività);;0;900219
+CVS;CE;C;Financial Income;900221;Interessi Attivi Da Attualizzazione;;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;900221
+CVS;CE;C;Financial Expenses;920207;Interessi Da Debiti Verso Banche;;Proventi E Oneri Finanziari;C17e - verso altri;83.426,69;3049,58;;Bilancio di Verifica;;86.476,27;920207
+CVS;CE;C;Financial Expenses;920209;Interessi Da Attualizzazione;;Proventi E Oneri Finanziari;C17e - verso altri;0;0;;assente nel grezzo → 0 (nessuna attività);;0;920209
+CVS;CE;C;Financial Expenses;920211;Interessi Da Altri Debiti;;Proventi E Oneri Finanziari;C17e - verso altri;14,09;364,27;;Bilancio di Verifica;;378,36;920211
+CVS;CE;C;Financial Expenses;920213;Int. Passivi V/Fornitori;;Proventi E Oneri Finanziari;C17e - verso altri;661,76;0;;Bilancio di Verifica;;661,76;920213
+CVS;CE;C;Financial Expenses;920215;Interessi Da Debiti Verso Banche_Linea Senior;;Proventi E Oneri Finanziari;C17e - verso altri;487.688,42;0;;Bilancio di Verifica;;487.688,42;920215
+CVS;CE;C;Financial Expenses;920217;Interessi Da Debiti Verso Banche_Linea Revolving;;Proventi E Oneri Finanziari;C17e - verso altri;0;0;;assente nel grezzo → 0 (nessuna attività);;0;920217
+CVS;CE;C;Financial Expenses;920219;Interessi passivi Diritti d'uso;;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;920219
+CVS;CE;R;Financial Income;920221;Interessi Attivi Da Attualizzazione;;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;920221
+CVS;CE;C;Financial Income;920401;Altri Oneri Finanziari;;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;920401
+CVS;CE;C;Taxes;940201;Irap Dell'esercizio;;Imposte Correnti;#NAME?;4801;3668;;Bilancio di Verifica;;8.469,00;940201
+CVS;CE;C;Taxes;940209;Ires Dell'esercizio;;Imposte Correnti;#NAME?;29.605;16.354;;Bilancio di Verifica;;45.959,00;940209
+CVS;CE;C;Taxes;940215;Acc.To Imp. Ires;;Imposte Correnti;#NAME?;0;0;;assente nel grezzo → 0 (nessuna attività);;0;940215
+CVS;CE;C;Taxes;940401;Imposte Relative Esercizi Precedenti;;N/A_Conti Infrannuali;N/A_conti infrannuali;0;0;;assente nel grezzo → 0 (nessuna attività);;0;940401
+CVS;CE;C;Taxes;940601;Imposte Anticipate;;Imposte Differite E Anticipate;#NAME?;0;0;;assente nel grezzo → 0 (nessuna attività);;0;940601
+CVS;SP;;Intangible Assets;Reclass-2;Lavori Straor. Su Beni Di Terzi In Corso;Immobilizzazioni Genera & Pulsano 31.12.25;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;Reclass-2
+CVS;SP;;Intangible Assets;Reclass-1;Lavori Straor. Su Beni Di Terzi;Lavori su beni di terzi in corso ufficio Milano;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;Reclass-1
+CVS;SP;;Trade Payables;N/A;Sbianciamento da allocare su fornitori;;Debiti Verso Fornitori;D.7 - debiti verso fornitori;0;0;;assente nel grezzo → 0 (nessuna attività);;0;N/A
+CVS;SP;;Retained Earnings;T00008;tained Earnings;;N/A_Conti Infrannuali;N/A_conti infrannuali;0;0;;assente nel grezzo → 0 (nessuna attività);;0;T00008
+CVS;SP;;Trade Payables;T00009;ening Balance;;N/A_Conti Infrannuali;N/A_conti infrannuali;0;0;;assente nel grezzo → 0 (nessuna attività);;0;T00009
+CVS;CE;Revenues;One Off Works;One-Off;One-Off;;N/A_Riclassifica Gestionale;N/A_riclassifica gestionale;0;0;;assente nel grezzo → 0 (nessuna attività);;0;One-Off
+CVS;CE;Revenues;One Off Works;One-Off No ATI;One-Off No ATI;;N/A_Riclassifica Gestionale;N/A_riclassifica gestionale;0;0;;assente nel grezzo → 0 (nessuna attività);;0;One-Off No ATI
+CVS;CE;Revenues;Canone;Photovoltaic ATI;Photovoltaic ATI;;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;Photovoltaic ATI
+CVS;SP;;Intangible Assets;307006-1;f.do amm.to capitalizz.op.effi;Efficientamento energetico ATL Dec24;Immobilizzazioni Immateriali;Altre immobilizzazioni immateriali;0;0;;assente nel grezzo → 0 (nessuna attività);;0;307006-1
+CVS;SP;;Intangible Assets;307906-1;f.do amm.to capitalizz.op.effi;Efficientamento energetico ATL Dec24;Immobilizzazioni Immateriali;Altre immobilizzazioni immateriali;0;0;;assente nel grezzo → 0 (nessuna attività);;0;307906-1
+CVS;SP;;Retained earnings;3000 -;Retained Earnings;;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;3000 -
+CVS;SP;;Other Credit;GST-001;Inventory Asset (Gest.);;TBD;TBD;661.599,88;0;;Bilancio di Verifica;;661.599,88;GST-001
+CVS;SP;;Other Liabilities;GST-002;Accrued Purchases (Gest.);;TBD;TBD;-787.113,65;0;;Bilancio di Verifica;;-787.113,65;GST-002
+CVS;CE;C;Costi Diretti;GST-005;Cost of Goods Sold (Gest.);;TBD;TBD;123.959,80;0;;Bilancio di Verifica;;123.959,80;GST-005
+CVS;SP;;Other Credit;GST-008;Inventory In Transit (Gest.);;TBD;TBD;1553,97;0;;Bilancio di Verifica;;1.553,97;GST-008
+CVS;SP;;Other Credit;GST-009;Intercompany Clearing Account (Gest.);;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;GST-009
+CVS;CE;C;Canone;GST-012; Income Commesse (Gest.);;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;GST-012
+CVS;CE;C;Costi Diretti;GST-013;Expense Commesse (Gest.);;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;GST-013
+CVS;SP;;Trade Payables;STD-005;Accounts Payable;;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;STD-005
+CVS;SP;;Other Credit;GST-007;Rettifica Inventariale (Gest.);;TBD;TBD;0;0;;assente nel grezzo → 0 (nessuna attività);;0;GST-007
+CVS;CE;;Overheads;68/05/501;SPESE PARTECIPAZIONE CONSORZIO;;TBD;TBD;0;3355,78;;assente nel grezzo → 0 (nessuna attività);;3.355,78;68/05/501
+CVS;SP;;Cash & Cash Equivalent;24/05/002;BANCA MPS C/C 1616312;;TBD;TBD;0;172.828,39;;assente nel grezzo → 0 (nessuna attività);;172.828,39;24/05/002
+CVS;SP;;Cash & Cash Equivalent;24/05/003;BANCA INTESA - EX B.NAPOLI;;TBD;TBD;0;121.605,94;;assente nel grezzo → 0 (nessuna attività);;121.605,94;24/05/003
+CVS;SP;;Cash & Cash Equivalent;24/05/006;CARTA PREPAGATA INTESA 50;;TBD;TBD;0;56,06;;assente nel grezzo → 0 (nessuna attività);;56,06;24/05/006
+CVS;CE;;Revenue by class;- No Class -;- No Class -;;;;-5.422.691,40;0;;620201 Ricavi, per classe;;-5.422.691,40;- No Class -
+CVS;CE;;Revenue by class;Canone;Canone;;;;-1478,23;0;;620201 Ricavi, per classe;;-1.478,23;Canone
+CVS;CE;;Revenue by class;Cemetary Services;Cemetary Services;;;;-132.712,10;0;;620201 Ricavi, per classe;;-132.712,10;Cemetary Services
+CVS;CE;;Revenue by class;Energy Public Building;Energy Public Building;;;;-324.000;0;;620201 Ricavi, per classe;;-324.000,00;Energy Public Building
+CVS;CE;;Revenue by class;Energy Public Building ATI;Energy Public Building ATI;;;;-351.071,40;0;;620201 Ricavi, per classe;;-351.071,40;Energy Public Building ATI
+CVS;CE;;Revenue by class;Energy Public Building No ATI;Energy Public Building No ATI;;;;0;0;;620201 Ricavi, per classe;;0;Energy Public Building No ATI
+CVS;CE;;Revenue by class;Extra Revenues;Extra Revenues;;;;-2.890.914,33;0;;620201 Ricavi, per classe;;-2.890.914,33;Extra Revenues
+CVS;CE;;Revenue by class;Generico;Generico;;;;-3444;0;;620201 Ricavi, per classe;;-3.444,00;Generico
+CVS;CE;;Revenue by class;One Off Works;One Off Works;;;;-179.090,09;0;;620201 Ricavi, per classe;;-179.090,09;One Off Works
+CVS;CE;;Revenue by class;Photovoltaic;Photovoltaic;;;;-452.166,77;-338,42;;620201 Ricavi, per classe;;-452.505,19;Photovoltaic
+CVS;CE;;Revenue by class;Public Heat Management No ATI;Public Heat Management No ATI;;;;418,8;0;;620201 Ricavi, per classe;;418,8;Public Heat Management No ATI
+CVS;CE;;Revenue by class;Public Streetlighting;Public Streetlighting;;;;-7.583.246,99;-703.607,54;;620201 Ricavi, per classe;;-8.286.854,53;Public Streetlighting
+CVS;CE;;Revenue by class;Public Streetlighting ATI;Public Streetlighting ATI;;;;-7.492.150,03;0;;620201 Ricavi, per classe;;-7.492.150,03;Public Streetlighting ATI
+CVS;CE;;Revenue by class;Public Streetlighting No ATI;Public Streetlighting No ATI;;;;-11.342.255,02;0;;620201 Ricavi, per classe;;-11.342.255,02;Public Streetlighting No ATI
+CVS;CE;;Revenue by class;Sales of Goods;Sales of Goods;;;;-387.892,49;0;;620201 Ricavi, per classe;;-387.892,49;Sales of Goods
+CVS;CE;;Revenue by class;Smart Buildings;Smart Buildings;;;;-327.617,44;0;;620201 Ricavi, per classe;;-327.617,44;Smart Buildings
+CVS;CE;;Revenue by class;Smart City;Smart City;;;;-20.882,06;0;;620201 Ricavi, per classe;;-20.882,06;Smart City
+CVS;CE;;Revenue by class;White Certificates;White Certificates;;;;0;0;;620201 Ricavi, per classe;;0;White Certificates
+CVS;SP;;Inventory;120201;Materie Prime, Sussidiarie E Consumo Iniziali;;Rimanenze;CI.1 - materie prime, sussidiarie e di consumo;0;111.115,03;da rivedere;conto presente nel piano dei conti ma non ancora nel BDV — classificazione proposta (simili: 120209): da confermare;;111.115,03;120201
+CVS;SP;;Inventory;120205;Lavori In Corso Su Ordinazione;;Rimanenze;CI.1 - materie prime, sussidiarie e di consumo;0;23.970,69;da rivedere;conto presente nel piano dei conti ma non ancora nel BDV — classificazione proposta (simili: 120209): da confermare;;23.970,69;120205
+CVS;CE;;Overheads;881201;Perdite su Crediti;;Oneri Diversi Di Gestione;B14 - oneri diversi di gestione;0;530;da rivedere;conto presente nel piano dei conti ma non ancora nel BDV — classificazione proposta (simili: 881001): da confermare;;530;881201
