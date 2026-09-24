@@ -28,7 +28,7 @@
     "contenuto": "Legenda SGP: testo voce → codice di riclassificazione gestionale"
    },
    "bdvAccounts": {
-    "voci": 493,
+    "voci": 496,
     "contenuto": "Conti del BDV: codice → nome e quadro"
    },
    "cvsBuWhitelist": {
@@ -36,7 +36,7 @@
     "contenuto": "Activity code che rientrano in CVS BU (le altre famiglie vanno a CapEx)"
    },
    "bdvFull": {
-    "voci": 493,
+    "voci": 496,
     "contenuto": "Riclassificazione gestionale completa per conto (Società, Quadro, Altro, Ricla MG esteso, Cluster II, Conto COGE I/II livello)"
    },
    "projectNames": {
@@ -7462,6 +7462,18 @@
   "24/05/006": {
    "name": "CARTA PREPAGATA INTESA 50",
    "quadro": "SP"
+  },
+  "120201": {
+   "name": "Materie Prime, Sussidiarie E Consumo Iniziali",
+   "quadro": "SP"
+  },
+  "120205": {
+   "name": "Lavori In Corso Su Ordinazione",
+   "quadro": "SP"
+  },
+  "881201": {
+   "name": "Perdite su Crediti",
+   "quadro": "CE"
   }
  },
  "cvsBuWhitelist": [
@@ -12402,6 +12414,36 @@
    "clusterII": null,
    "contoI": "TBD",
    "contoII": "TBD"
+  },
+  "120201": {
+   "societa": "CVS",
+   "quadro": "SP",
+   "altro": null,
+   "ricla": "Inventory",
+   "nome": "Materie Prime, Sussidiarie E Consumo Iniziali",
+   "clusterII": null,
+   "contoI": "Rimanenze",
+   "contoII": "CI.1 - materie prime, sussidiarie e di consumo"
+  },
+  "120205": {
+   "societa": "CVS",
+   "quadro": "SP",
+   "altro": null,
+   "ricla": "Inventory",
+   "nome": "Lavori In Corso Su Ordinazione",
+   "clusterII": null,
+   "contoI": "Rimanenze",
+   "contoII": "CI.1 - materie prime, sussidiarie e di consumo"
+  },
+  "881201": {
+   "societa": "CVS",
+   "quadro": "CE",
+   "altro": "C",
+   "ricla": "Overheads",
+   "nome": "Perdite su Crediti",
+   "clusterII": null,
+   "contoI": "Oneri Diversi Di Gestione",
+   "contoII": "B14 - oneri diversi di gestione"
   }
  },
  "projectNames": {
