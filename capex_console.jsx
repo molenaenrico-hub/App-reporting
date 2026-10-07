@@ -1413,6 +1413,26 @@ function processCVSBU(wb, db) {
   const whitelist = new Set(db.cvsBuWhitelist);
   const nonEpcComuni = new Set(db.nonEpcComuni);
 
+  // Cadastral codes with an awarded main (multi-year) contract on record, in
+  // either registry. A contract counts from the moment it is awarded, not
+  // from its first invoice (e.g. Guardia Perticara, Trecchina: CapEx-only
+  // while in efficientamento, no CVS BU revenue row yet). Derived fresh every
+  // run from the two source registries so it can never go stale.
+  const MAIN_CONTRACT_TYPES = new Set(['PPP', 'C-AQ1', 'C-Luce 3', 'C-Luce 4']);
+  const concessionCodes = new Set();
+  for (const pid of Object.keys(db.cvsBuProjectDB || {})) {
+    if (MAIN_CONTRACT_TYPES.has(db.cvsBuProjectDB[pid].streamII)) {
+      const code = cadastralCode(pid);
+      if (code) concessionCodes.add(code);
+    }
+  }
+  for (const pid of Object.keys(db.capexProjectDB || {})) {
+    if (MAIN_CONTRACT_TYPES.has(db.capexProjectDB[pid].contract)) {
+      const code = cadastralCode(pid);
+      if (code) concessionCodes.add(code);
+    }
+  }
+
   // group normalized records by project
   const byPid = {};
   for (const rec of records) {
@@ -1527,10 +1547,22 @@ function processCVSBU(wb, db) {
 
     let streamI, streamII;
     if (first === 'EPC') {
-      const isKnownComune = nonEpcComuni.has(comune);
+      // Compare by cadastral code first, never by comune/client text (same rule
+      // as the BU lookup above — "Sasso Di Castalda" vs "Sasso di Castalda" vs
+      // "Sasso di Castalda PV" all compare equal once reduced to their code).
+      // Fall back to the name-based registry only when this Project ID carries
+      // no resolvable cadastral code at all.
+      const epcCode = cadastralCode(pid);
+      const hasConcession = epcCode ? concessionCodes.has(epcCode) : null;
+      const isKnownComune = hasConcession !== null ? hasConcession : nonEpcComuni.has(comune);
       streamI = isKnownComune ? 'Extra Revenues' : 'One Off Works';
       streamII = streamI;
-      notes.push(`commessa EPC nuova — proposta "${streamI}" (${isKnownComune ? 'comune già attivo con altro codice' : 'nessun altro codice per questo comune/cliente'}), da confermare`);
+      const why = hasConcession !== null
+        ? (hasConcession
+          ? `contratto principale già aggiudicato sul codice catastale ${epcCode}`
+          : `nessun contratto principale aggiudicato sul codice catastale ${epcCode}`)
+        : (isKnownComune ? 'comune già attivo con altro codice (nessun codice catastale su questo Project ID)' : 'nessun altro codice per questo comune/cliente');
+      notes.push(`commessa EPC nuova — proposta "${streamI}" (${why}), da confermare`);
     } else if (CVSBU_SEGMENT_MAP[second]) {
       streamI = CVSBU_SEGMENT_MAP[second];
       streamII = second === 'IPU' ? first : streamI;
@@ -1972,6 +2004,17 @@ export default function App() {
                   <AlertOctagon size={14} /> <span>{stats.anomaly}</span> anomalie
                 </button>
               )}
+              {mode === 'bdv' && output.dgSheetName && (
+                <div
+                  className={`summary-stat quadratura ${Math.abs(output.dgTotal) < 0.01 ? 'auto' : 'anomaly'}`}
+                  title="Bridge De Giorgi: la somma degli importi con segno deve fare esattamente zero (attivo = passivo + risultato)"
+                >
+                  {Math.abs(output.dgTotal) < 0.01
+                    ? <Check size={14} />
+                    : <AlertOctagon size={14} />}
+                  {' '}quadratura bridge: <span>{fmtEUR(output.dgTotal)}</span> €
+                </div>
+              )}
               {filter && (
                 <button className="filter-clear" onClick={() => setFilter(null)}>
                   <X size={12} /> mostra tutte
@@ -2171,6 +2214,9 @@ const STYLES = `
 .summary-stat.is-active.auto { box-shadow: 0 0 0 3px rgba(127,166,135,0.18); }
 .summary-stat.is-active.flag { box-shadow: 0 0 0 3px rgba(217,165,72,0.18); }
 .summary-stat.is-active.anomaly { box-shadow: 0 0 0 3px rgba(194,99,74,0.18); }
+.summary-stat.quadratura { cursor: default; }
+.summary-stat.quadratura:hover { filter: none; }
+.summary-stat.quadratura span { margin-left: 2px; }
 .filter-clear {
   display: flex; align-items: center; gap: 5px;
   background: none; border: 1px dashed var(--line); color: var(--mute);
