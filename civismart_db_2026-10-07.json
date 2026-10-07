@@ -1,7 +1,7 @@
 {
  "_meta": {
   "descrizione": "Database dell app di riclassifica CiviSmart. Struttura identica a quella usata dall app: puo essere reimportato cosi com e.",
-  "esportato": "2026-09-24",
+  "esportato": "2026-10-07",
   "tabelle": {
    "regionToBU": {
     "voci": 20,
@@ -70,6 +70,22 @@
    "capexIndirectRate": {
     "voci": 1,
     "contenuto": "Aliquota costi indiretti applicata alle capitalizzazioni CiviSmart e Fotovoltaico (non alle SPV)"
+   },
+   "mainContractTypes": {
+    "voci": 4,
+    "contenuto": "Tipi di contratto considerati principali pluriennali"
+   },
+   "mainContractPrefixes": {
+    "voci": 5,
+    "contenuto": "Prefissi di Project ID considerati contratto principale pluriennale"
+   },
+   "extraRevenueCodes": {
+    "voci": 8,
+    "contenuto": "Codici catastali che abilitano Extra Revenues senza un contratto a registro (presenza tramite SPV SGP o conferma diretta), con il motivo"
+   },
+   "sgpSpvNames": {
+    "voci": 6,
+    "contenuto": "Comuni in cui il gruppo e presente tramite una SPV SGP (dal foglio Aggr. SPV del report di gruppo)"
    }
   }
  },
@@ -525,7 +541,7 @@
   "Buguggiate": "North West",
   "Trecchina": "South",
   "Paterno": "South",
-  "Costruzioni Acocella": "Centre",
+  "Costruzioni Acocella": "South",
   "Sacca San Biagio": "North East",
   "Provincia di Monza e Brianza": "North West",
   "Sauze Di Cesana": "North West",
@@ -537,7 +553,7 @@
   "Vier (Ca' Solaro)": "North East",
   "La Fenice": "South",
   "COSTRUZIONI ING. E. PASQUALUCCI SRL": "North West",
-  "GUARDIA PERTICARA": "Centre",
+  "GUARDIA PERTICARA": "South",
   "Delta Impianti srl": "South",
   "Pagani": "South",
   "Danilo Consonni": "North West",
@@ -572,9 +588,9 @@
   "Iren Green Generation": "North West",
   "Maria Aulicino": "South",
   "Edilgornati": "North West",
-  "Edilgifa": "North West",
-  "Santa reparata": "North West",
-  "DRV": "Centre",
+  "Edilgifa": "South",
+  "Santa reparata": "Centre",
+  "DRV": "North West",
   "San Marzano di San Giuseppe": "South",
   "Rivoli": "North West",
   "Copertino 1": "South",
@@ -2558,8 +2574,8 @@
    "seller": "Organic",
    "comune": "Illegno SRL",
    "bu": "North West",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "ILLEGNO S.R.L. : ILLEGNO SRL - LAVORI SPOT"
   },
   "EPC-IPU-F632-02": {
@@ -2598,8 +2614,8 @@
    "seller": "Organic",
    "comune": "Agora",
    "bu": "North West",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "AGORA S.R.L. : AGORA SRL-EXTRA LAVORI SPOT PISTA CICLO PED."
   },
   "CL3-IPU-F522-01": {
@@ -2766,8 +2782,8 @@
    "seller": "Organic",
    "comune": "Bel Guardo",
    "bu": "North West",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "BEL GUARDO SRL : BEL GUARDO SRL-EXTRA LAVORI SPOT PISTA CICLO PED."
   },
   "CL3-IPU-E951-01": {
@@ -3022,16 +3038,16 @@
    "seller": "Organic",
    "comune": "Elettrosystem",
    "bu": "North West",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "ELETTROSYSTEM S.R.L. : ELETTROSYSTEM SRL-EXTRA LAVORI SPOT"
   },
   "EPC-IPU-E951-08": {
    "seller": "Organic",
    "comune": "Equipe srl",
    "bu": "North West",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "EQUIPE S.R.L. : EQUIPE SRL-EXTRA LAVORI SPOT-MARIANO C."
   },
   "CL4-IPU-L142-01": {
@@ -3174,16 +3190,16 @@
    "seller": "Organic",
    "comune": "E. GIANTURCO",
    "bu": "South",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "ASILO INFANTILE E. GIANTURCO : FV ASILO INFANTILE LAVORI SPOT"
   },
   "EPC-PHV-L736-03": {
    "seller": "Organic",
    "comune": "PV H2 ex- Alcoa",
    "bu": "North East",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "VIER SCARL : Fotovoltaico Prog. Hydrogen ValleyOne off Works"
   },
   "EPC-IPU-B258-01": {
@@ -3198,32 +3214,32 @@
    "seller": "Organic",
    "comune": "Trecchina",
    "bu": "South",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "COMUNE DI TRECCHINA : TRECCHINA LAVORI SPOT"
   },
   "EPC-IPU-M269-04": {
    "seller": "Organic",
    "comune": "Paterno",
    "bu": "South",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "Comune di Paterno : PATERNO LAVORI SPOT"
   },
   "EPC-IPU-C058-01": {
    "seller": "Organic",
    "comune": "Costruzioni Acocella",
    "bu": "South",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "COSTRUZIONI ACOCELLA  S.R.L. : COSTRUZIONI ACOCELLA LAVORI SPOT"
   },
   "EPC-EEE-L736-01": {
    "seller": "Organic",
    "comune": "Sacca San Biagio",
    "bu": "North East",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "VERITAS SPA : Sacca San BiagioOne off Works"
   },
   "EPC-IPU-F704-03": {
@@ -3246,24 +3262,24 @@
    "seller": "Organic",
    "comune": "ICG srl",
    "bu": "South",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "ICG SRL : ICG SRL LAVORI SPOT"
   },
   "EPC-IPU-G712-01": {
    "seller": "Organic",
    "comune": "Pisticci",
    "bu": "South",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "Comune di Pisticci : PISTICCI LAVORI SPOT"
   },
   "EPC-IPU-E951-05": {
    "seller": "Organic",
    "comune": "Fajo",
    "bu": "North West",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "IMPRESA FAJO S.R.L. : IMPRESA FAJO SRL - LAVORI SPOT"
   },
   "SEC-IPU-A087-01": {
@@ -3286,8 +3302,8 @@
    "seller": "Organic",
    "comune": "Vier (Ca' Solaro)",
    "bu": "North East",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "VIER SCARL : Fotovoltaico VIER Cà SolaroOne off Works"
   },
   "EPC-IPU-F704-04": {
@@ -3310,8 +3326,8 @@
    "seller": "Organic",
    "comune": "COSTRUZIONI ING. E. PASQUALUCCI SRL",
    "bu": "North West",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "IMPRESA COSTRUZIONI ING. E. PASQUALUCCI SRL : IMPRESA COSTRUZIONI ING. E.PASQUALUCCI SRL"
   },
   "EPC-IPU-E246-03": {
@@ -3334,8 +3350,8 @@
    "seller": "Organic",
    "comune": "Nerviano",
    "bu": "North West",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "Comune di Nerviano : COMUNE DI NERVIANO EXTRA LAVORI SPOT"
   },
   "PPP-IPU-G230-02": {
@@ -3350,8 +3366,8 @@
    "seller": "Organic",
    "comune": "Danilo Consonni",
    "bu": "North West",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "DANILO CONSONNI : CONSONNI DANILO - LAVORI SPOT"
   },
   "SEC-IPU-I895-01": {
@@ -3662,8 +3678,8 @@
    "seller": "Organic",
    "comune": "Masate",
    "bu": "North West",
-   "streamI": "Extra Revenues",
-   "streamII": "Extra Revenues",
+   "streamI": "One Off Works",
+   "streamII": "One Off Works",
    "projectName": "COMUNE DI MASATE : MASATE EXTRA LAVORI SPOT CIG: B926209EF9"
   },
   "EPC-PHV-L736-04": {
@@ -3718,8 +3734,8 @@
    "seller": "Organic",
    "comune": "Sant'Egidio del Monte Albino",
    "bu": "South",
-   "streamI": "Extra Revenues",
-   "streamII": "Extra Revenues",
+   "streamI": "One Off Works",
+   "streamII": "One Off Works",
    "projectName": "Comune di Sant'Egidio del Monte Albino : SANT'EGIDIO DEL MONTE ALBINO LAVORI SPOT"
   },
   "EPC-IPU-L191-05": {
@@ -4022,8 +4038,8 @@
    "seller": "Organic",
    "comune": "Ubaldi Luciana",
    "bu": "Centre",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "UBALDI LUCIANA : EXTRA LAVORI SPOT UBALDI LUCIANA"
   },
   "EPC-IPU-F348-06": {
@@ -4038,24 +4054,24 @@
    "seller": "Organic",
    "comune": "C.A. Group",
    "bu": "Centre",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "C.A. GROUP SRL : EXTRA LAVORI SPOT C.A GROUP SRL"
   },
   "EPC-IPU-F205-01": {
    "seller": "Organic",
    "comune": "Mennekes Electric Italia Srl",
    "bu": "North West",
-   "streamI": "Extra Revenues",
-   "streamII": "Extra Revenues",
+   "streamI": "One Off Works",
+   "streamII": "One Off Works",
    "projectName": "MENNEKES ELECTRIC ITALIA SRL : MENNEKES ELCTRIC ITALIA SRL LAVORI SPOT"
   },
   "EPC-IPU-G878-02": {
    "seller": "Organic",
    "comune": "De Luca Amalia",
    "bu": "Centre",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "DE LUCA AMALIA : EXTRA LAVORI SPOT DE LUCA AMALIA"
   },
   "EPC-IPU-I089-01": {
@@ -4134,16 +4150,16 @@
    "seller": "Organic",
    "comune": "Damniele Posca",
    "bu": "North West",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "DANIELE POSCA : EXTRA LAVORI SPOT LEZZENO POSCA DANIELE"
   },
   "EPC-IPU-I457-01": {
    "seller": "Organic",
    "comune": "Metaplast",
    "bu": "South",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "METAPLAST GRT SRL : SMALTIMENTO METAPLAST GRT SRL LAVORI SPOT"
   },
   "EPC-IPU-L219-01": {
@@ -4158,32 +4174,32 @@
    "seller": "Organic",
    "comune": "Maria Aulicino",
    "bu": "South",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "MARIA AULICINO : AULICINO MARIA LAVORI SPOT"
   },
   "EPC-IPU-A413-08": {
    "seller": "Organic",
    "comune": "Edilgornati",
    "bu": "North West",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "EDILGORNATI SRL : ARLUNO EXTRA LAV.SPOT VIA CASTIGLIONI"
   },
   "EPC-IPU-E976-08": {
    "seller": "Organic",
    "comune": "Edilgifa",
    "bu": "South",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "EDILGIFA DI FABI ANNALISA : EDILGIFA DI FABI ANNALISA EXTRA LAVORI SPOT"
   },
   "EPC-IPU-A488-02": {
    "seller": "Organic",
    "comune": "Santa reparata",
    "bu": "Centre",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "COMITATO FESTA SANTA REPARATA : EXTRA LAVORI SPOT COMITATO S.REPARATA"
   },
   "EPC-IPU-H602-02": {
@@ -4566,16 +4582,16 @@
    "seller": "Organic",
    "comune": "Associazione Culturale Lds Liberi di Suonare",
    "bu": "Centre",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "Associazione Culturale LDS Liberi di Suonare : ASSOCIAZIONE CULTURALE LDS LANUVIO"
   },
   "EPC-IPU-A413-09": {
    "seller": "Organic",
    "comune": "Tigros Servizi Immobiliari Srl",
    "bu": "North West",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "TIGROS SERVIZI IMMOBILIARI SRL : ARLUNO EXTRA LAVORI SPOT - TIGROS"
   },
   "SEC-PHV-A515-02": {
@@ -4590,8 +4606,8 @@
    "seller": "Organic",
    "comune": "Innova Aps",
    "bu": "Centre",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "INNOVA APS : INNOVA APS LANUVIO spot"
   },
   "PPP-IPU-B437-01": {
@@ -4606,16 +4622,16 @@
    "seller": "Organic",
    "comune": "Chioggia Servizi Soc. Cons. Arl",
    "bu": "North East",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "CHIOGGIA SERVIZI SOC. CONS. ARL : CHIOGGIA - SPESE GESTIONE - CHIOGGIA SERVIZI"
   },
   "EPC-IPU-H641-02": {
    "seller": "Organic",
    "comune": "Troiano S.a.s di Troiano Feliciano & C",
    "bu": "South",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "TROIANO S.A.S DI TROIANO FELICIANO & C : TROIANO S.A.S DI TROIANO FELICIANO & C LAVORI SPOT"
   },
   "EPC-IPU-I608-06": {
@@ -4686,8 +4702,8 @@
    "seller": "Organic",
    "comune": "Guffanti A. Spa",
    "bu": "North West",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "GUFFANTI A. SPA : ROVELLASCA EXTRA LAVORI SPOT - GUFFANTI A. SPA"
   },
   "EPC-IPU-G910-01": {
@@ -4710,16 +4726,16 @@
    "seller": "Organic",
    "comune": "Guardia Perticara",
    "bu": "South",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "COMUNE DI GUARDIA PERTICARA : GUARDIA PERTICARA IP LAVORI SPOT CIG: BC5C763938"
   },
   "EPC-IPU-L357-02": {
    "seller": "Organic",
    "comune": "Trecchina",
    "bu": "South",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "COMUNE DI TRECCHINA : TRECCHINA LAVORI SPOT CIG: BCA9953041"
   },
   "EPC-IPU-D542-04": {
@@ -4790,8 +4806,8 @@
    "seller": "Organic",
    "comune": "Venezia - Videosorveglianza",
    "bu": "North East",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "COMUNE DI VENEZIA - VIDEOSORVEGLIANZA"
   },
   "PPP-IPU-E693-01": {
@@ -4870,8 +4886,8 @@
    "seller": "Organic",
    "comune": "Bussi sul Tirino - Ufficio Tecnico",
    "bu": "Centre",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "Comune di Bussi sul Tirino - ufficio tecnico : BUSSI SUL TIRINO EXTRA LAVORI cig BA72B01F91"
   },
   "EPC-IPU-C717-04": {
@@ -4918,8 +4934,8 @@
    "seller": "Organic",
    "comune": "Condominio Pian Fiorito",
    "bu": "North West",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "Condominio Pian Fiorito : PINEROLO EX.LAV SPOT CONDOMINIO PIAN FIORITO"
   },
   "EPC-IPU-H307-01": {
@@ -4942,8 +4958,8 @@
    "seller": "Organic",
    "comune": "Nuova Atlantide-Piccola Soc. Coop.a R.l.",
    "bu": "South",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "NUOVA ATLANTIDE-PICCOLA SOC. COOP.A R.L. : NUOVA ATLANTIDE-PICCOLA SOC. COOP.A R.L. LAVORI SPOT"
   },
   "EPC-IPU-I608-07": {
@@ -4958,8 +4974,8 @@
    "seller": "Organic",
    "comune": "Acquaviva Picena - Ufficio Tecnico Urbanistica",
    "bu": "Centre",
-   "streamI": "One Off Works",
-   "streamII": "One Off Works",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
    "projectName": "Comune di Acquaviva Picena - UFFICIO TECNICO URBANISTICA : ACQUAVIVA PICENA EXTRA LAVORI"
   },
   "EPC-IPU-I307-02": {
@@ -25463,5 +25479,36 @@
   "North East",
   "North West"
  ],
- "capexIndirectRate": 0.15
+ "capexIndirectRate": 0.15,
+ "mainContractTypes": [
+  "AQ1",
+  "CL3",
+  "CL4",
+  "PPP"
+ ],
+ "mainContractPrefixes": [
+  "AQ1",
+  "ATI",
+  "CL3",
+  "CL4",
+  "PPP"
+ ],
+ "extraRevenueCodes": {
+  "F915": "presenza tramite SGP (SPV Noci)",
+  "A339": "presenza tramite SGP (SPV Apricena)",
+  "A697": "presenza tramite SGP (SPV Basiano)",
+  "B216": "presenza tramite SGP (SPV Bruino)",
+  "G230": "presenza tramite SGP (SPV Pagani)",
+  "C003": "presenza tramite SGP (SPV Cassano d'Adda)",
+  "I820": "confermato: Somma Vesuviana è Extra Revenues",
+  "L703": "confermato: Vedano Olona è Extra Revenues"
+ },
+ "sgpSpvNames": [
+  "Noci",
+  "Apricena",
+  "Basiano",
+  "Bruino",
+  "Cassano d'Adda",
+  "Pagani"
+ ]
 }
