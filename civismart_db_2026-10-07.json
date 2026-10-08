@@ -16,7 +16,7 @@
     "contenuto": "Nome comune/cliente → Business Unit"
    },
    "cvsBuProjectDB": {
-    "voci": 505,
+    "voci": 548,
     "contenuto": "Anagrafica CVS BU per Project ID: seller, comune, BU, business stream I/II, project name"
    },
    "nonEpcComuni": {
@@ -4993,6 +4993,350 @@
    "streamI": "Public Streetlighting",
    "streamII": "PPP",
    "projectName": "COMUNE DI MASSALENGO : MASSALENGO ILLUMINAZIONE PUBBLICA"
+  },
+  "EPC-IPU-I457-07": {
+   "seller": "Organic",
+   "comune": "Sasso di Castalda",
+   "bu": "South",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "Comune di Sasso di Castalda : SASSO DI CASTALDA EXTRA LAVORI CIG: BCCC562004"
+  },
+  "EPC-IPU-G761-03": {
+   "seller": "Organic",
+   "comune": "Manzelli Srl",
+   "bu": "South",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "MANZELLI SRL : MANZELLI SRL LAVORI SPOT"
+  },
+  "EPC-IPU-D472-03": {
+   "seller": "Organic",
+   "comune": "Falconara Marittima",
+   "bu": "Centre",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "Comune di Falconara Marittima : FALCONARA EXTRA.LAV. MANUTENZIONE IP CIG. BC3F4232FB"
+  },
+  "EPC-IPU-D812-06": {
+   "seller": "Organic",
+   "comune": "Bonnin Auto Snc",
+   "bu": "North West",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "BONNIN AUTO SNC : FROSSASCO EXTRA LAVORI SPOT BONNIN AUTO SNC"
+  },
+  "EPC-IPU-B162-09": {
+   "seller": "Organic",
+   "comune": "Gambara Asfalti Spa",
+   "bu": "North West",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "GAMBARA ASFALTI SPA : BRESSO EXTRA LAV.SPOT VIA CLERICI - GAMBARA"
+  },
+  "EPC-IPU-I696-03": {
+   "seller": "Organic",
+   "comune": "Citta' Metropolitana di Milano",
+   "bu": "North West",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "CITTA' METROPOLITANA DI MILANO : CITTA' METROPOLITANA DI MILANO-PAULLESE KM10 - SINTEL CIG.5653698B2C"
+  },
+  "EPC-IPU-F370-02": {
+   "seller": "Organic",
+   "comune": "Mongrassano",
+   "bu": "South",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "COMUNE DI MONGRASSANO : MONGRASSANO EXTRA LAVORI CIG: BC150F01D3"
+  },
+  "PPP-IPU-I962-01": {
+   "seller": "Organic",
+   "comune": "Stornara",
+   "bu": "South",
+   "streamI": "Public Streetlighting",
+   "streamII": "PPP",
+   "projectName": "Comune di Stornara : STORNARA ILLUMINAZIONE PUBBLICA"
+  },
+  "EPC-IPU-E976-04": {
+   "seller": "Organic",
+   "comune": "Marsico Nuovo",
+   "bu": "South",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "Comune di Marsico Nuovo : CigB130E6AD10 MARSICO NUOVO IP EXTRA LAVORI"
+  },
+  "EPC-IPU-L191-12": {
+   "seller": "Organic",
+   "comune": "Soles Tech Soc Cop",
+   "bu": "Centre",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "SOLES TECH SOC COP : TOLENTINO EXTRA LAVORI SPOT VIA VIALE V.VENETO SOLES TECH"
+  },
+  "EPC-IPU-B162-07": {
+   "seller": "Organic",
+   "comune": "E-Distribuzione Spa",
+   "bu": "North West",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "E-DISTRIBUZIONE SPA : BRESSO EX.LAV.SPOT VIA VOLTA E-DISTRIBUZIONE"
+  },
+  "EPC-IPU-E716-07": {
+   "seller": "Organic",
+   "comune": "F.m. Srl",
+   "bu": "South",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "F.M. SRL : F.M. SRL LAVORI SPOT"
+  },
+  "EPC-IPU-I480-04": {
+   "seller": "Organic",
+   "comune": "Savona",
+   "bu": "North West",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "COMUNE DI SAVONA : SAVONA IP EXTRA LAVORI CIG : 7746961275"
+  },
+  "EPC-IPU-D812-03": {
+   "seller": "Organic",
+   "comune": "In Cucina Arredamenti Srl",
+   "bu": "North West",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "IN CUCINA ARREDAMENTI SRL : FROSSASCO EXTRA LAVORI SPOT IN CUCINA ARREDAMENTI SRL"
+  },
+  "EPC-IPU-D812-05": {
+   "seller": "Organic",
+   "comune": "Lima Srl",
+   "bu": "North West",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "LIMA SRL : FROSSASCO EXTRA LAVORI SPOT LIMA SRL"
+  },
+  "EPC-IPU-C259-01": {
+   "seller": "Organic",
+   "comune": "Csg Illuminazione Srl",
+   "bu": "South",
+   "streamI": "One Off Works",
+   "streamII": "One Off Works",
+   "projectName": "CSG ILLUMINAZIONE SRL : CSG ILLUMINAZIONE SRL LAVORI SPOT"
+  },
+  "SEC-PHV-D593-09": {
+   "seller": "Organic",
+   "comune": "Filiano",
+   "bu": "South",
+   "streamI": "Photovoltaic",
+   "streamII": "Photovoltaic",
+   "projectName": "Comune di Filiano : Fotovoltaico Filiano SSP00071973"
+  },
+  "PPP-IPU-F952-01": {
+   "seller": "Organic",
+   "comune": "Novara",
+   "bu": "North West",
+   "streamI": "Public Streetlighting",
+   "streamII": "PPP",
+   "projectName": "Comune di Novara : COMUNE DI NOVARA CIG BB6140AA57 PPP"
+  },
+  "EPC-IPU-L191-09": {
+   "seller": "Organic",
+   "comune": "Soles Tech Soc Cop",
+   "bu": "Centre",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "SOLES TECH SOC COP : TOLENTINO EXTRA LAV SPOT VIA TRENTO TRIESTE SOLES TECH"
+  },
+  "EPC-IPU-A519-08": {
+   "seller": "Organic",
+   "comune": "Condominio Mercadante Cgz",
+   "bu": "South",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "CONDOMINIO MERCADANTE CGZ : CONDOMININIO CGZ EXTRA LAVORI"
+  },
+  "EPC-IPU-C752-03": {
+   "seller": "Organic",
+   "comune": "Natale Sandionigi Srl Costruzioni Edili",
+   "bu": "North West",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "NATALE SANDIONIGI SRL COSTRUZIONI EDILI : CIVATE EXTRA LAV. SPOT SANDIONIGI SRL"
+  },
+  "EPC-IPU-G806-01": {
+   "seller": "Organic",
+   "comune": "Pomarico",
+   "bu": "South",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "COMUNE DI POMARICO : VMC CigA0040BBBA2 POMARICO LAVORI SPOT"
+  },
+  "EPC-IPU-D812-01": {
+   "seller": "Organic",
+   "comune": "Pa.ma Snc di Pinchetti Pier Paolo e C.",
+   "bu": "North West",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "PA.MA SNC DI PINCHETTI PIER PAOLO E C. : FROSSASCO EXTRA LAVORI SPOT PA.MA SNC"
+  },
+  "EPC-IPU-B415-01": {
+   "seller": "Organic",
+   "comune": "Calitri",
+   "bu": "South",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "Comune di Calitri : CigA00AE29985 CALITRI IP EXTRA LAVORI"
+  },
+  "EPC-IPU-G942-11": {
+   "seller": "Organic",
+   "comune": "Cdlt Cgil Potenza",
+   "bu": "South",
+   "streamI": "One Off Works",
+   "streamII": "One Off Works",
+   "projectName": "CDLT CGIL POTENZA : CGIL POTENZA 2026 LAVORI SPOT"
+  },
+  "EPC-IPU-L835-03": {
+   "seller": "Organic",
+   "comune": "Vibonati",
+   "bu": "South",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "COMUNE DI VIBONATI : VIBONATI EXTRA LAVORI CIG: BCDEFC1940"
+  },
+  "EPC-IPU-M269-05": {
+   "seller": "Organic",
+   "comune": "Paterno",
+   "bu": "South",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "Comune di Paterno : PATERNO LAVORI SPOT CIG: BD2DE9794C"
+  },
+  "EPC-IPU-G514-02": {
+   "seller": "Organic",
+   "comune": "Petriano",
+   "bu": "Centre",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "Comune di Petriano : PETRIANO MANUT. IP DAL 01.07.26-31.12.27 CIG BC36F069BE"
+  },
+  "EPC-IPU-D812-02": {
+   "seller": "Organic",
+   "comune": "Due Zeta Snc",
+   "bu": "North West",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "DUE ZETA SNC : FROSSASCO EXTRA LAVORI SPOT DUE ZETA SNC"
+  },
+  "EPC-IPU-F370-03": {
+   "seller": "Organic",
+   "comune": "Mongrassano",
+   "bu": "South",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "COMUNE DI MONGRASSANO : MONGRASSANO EXTRA LAVORI CIG: BD0D4801B6"
+  },
+  "EPC-IPU-L191-13": {
+   "seller": "Organic",
+   "comune": "Cifolelli Edilizia Srl",
+   "bu": "Centre",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "CIFOLELLI EDILIZIA SRL : TOLENTINO EXTRA LAV.SPOT CIFOLELLI EDILIZIA SRL"
+  },
+  "EPC-IPU-B593-02": {
+   "seller": "Organic",
+   "comune": "Mpm S.r.l.",
+   "bu": "North West",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "MPM s.r.l. : CANEGRATE EXTRA LAVORI SPOT MPM"
+  },
+  "EPC-IPU-C752-02": {
+   "seller": "Organic",
+   "comune": "Civate",
+   "bu": "North West",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "Comune di Civate : CIVATE EXTRA LAVORI DET. 115 VIA PROV-VIA PAPA GIOV.XXIII"
+  },
+  "PPP-EEE-C750-02": {
+   "seller": "Organic",
+   "comune": "Citta' Sant'angelo - Uff_efatturapa",
+   "bu": "Centre",
+   "streamI": "Smart Buildings",
+   "streamII": "Smart Buildings",
+   "projectName": "Comune di Citta' Sant'Angelo - Uff_eFatturaPA : CITTA' SANT'ANGELO EFFICIENTAMENTO ENERGETICO EDIFICI"
+  },
+  "EPC-IPU-D812-04": {
+   "seller": "Organic",
+   "comune": "Ellepi Costruzioni Srl",
+   "bu": "North West",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "ELLEPI COSTRUZIONI SRL : FROSSASCO EXTRA LAVORI SPOT ELLEPI COSTRUZIONI SRL"
+  },
+  "EPC-IPU-D472-02": {
+   "seller": "Organic",
+   "comune": "Falconara Marittima",
+   "bu": "Centre",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "Comune di Falconara Marittima : FALCONARA MARITTIMA EXTRA LAVORI DET.721 CIG:BBF137518E"
+  },
+  "EPC-IPU-I917-01": {
+   "seller": "Organic",
+   "comune": "Spinoso",
+   "bu": "South",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "COMUNE DI SPINOSO : SPINOSO LAVORI SPOT"
+  },
+  "EPC-IPU-F257-02": {
+   "seller": "Organic",
+   "comune": "Cassano Efficiency S.r.l.",
+   "bu": "Centre",
+   "streamI": "One Off Works",
+   "streamII": "One Off Works",
+   "projectName": "CASSANO EFFICIENCY S.R.L. : CASSANO EFFICENCY SRL LAVORI SPOT"
+  },
+  "EPC-IPU-F205-03": {
+   "seller": "Organic",
+   "comune": "Diamond Smart City Srl",
+   "bu": "North West",
+   "streamI": "One Off Works",
+   "streamII": "One Off Works",
+   "projectName": "DIAMOND SMART CITY SRL : DIAMOND SMART CITY SRL LAVORI SPOT"
+  },
+  "EPC-IPU-I305-06": {
+   "seller": "Organic",
+   "comune": "Sant'arcangelo",
+   "bu": "South",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "COMUNE DI SANT'ARCANGELO : SANT'ARCANGELO EXTRA LAVORI CIG: BB6FF6C8D1"
+  },
+  "EPC-IPU-H601-03": {
+   "seller": "Organic",
+   "comune": "Batelco Srl",
+   "bu": "North West",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "BATELCO SRL : ROVELLASCA EXTRA LAV.SPOT VIA UGO FOSCOLO-BATELCO"
+  },
+  "SEC-PHV-A519-03": {
+   "seller": "Organic",
+   "comune": "Avigliano",
+   "bu": "South",
+   "streamI": "Photovoltaic",
+   "streamII": "Photovoltaic",
+   "projectName": "Comune di Avigliano : Fotovoltaico Avigliano SSP00253948"
+  },
+  "EPC-IPU-D593-03": {
+   "seller": "Organic",
+   "comune": "Filiano",
+   "bu": "South",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "Comune di Filiano : FILIANO EXTRA LAVORI CIG: 9061900472"
   }
  },
  "nonEpcComuni": [
