@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import * as XLSX from 'xlsx';
 import ExcelJS from 'exceljs';
 import CAPEX_BASE_SETTEMBRE from './capex_base_settembre_2026.json';
+import CVSBU_BASE_SETTEMBRE from './cvsbu_base_settembre_2026.json';
 import {
   Upload, FileSpreadsheet, Check, AlertTriangle, AlertOctagon, Download,
   Database, ChevronRight, Loader2, Info, Zap, Sun, Building2, Landmark,
@@ -137,9 +138,11 @@ const MODES = [
   {
     id: 'cvsbu', label: 'CVS BU', icon: FileSpreadsheet,
     tagline: 'Ricavi e costi diretti per commessa',
-    dest: 'sheet "CVS BU", tabella da riga 175',
+    dest: 'sheet "CVS BU", tabella I:AP da riga 180',
     fileHint: 'Il file "DB commesse" (foglio Elab 3) oppure l\'export grezzo "Financials Commesse"',
-    emptyHint: 'Carica il DB commesse (foglio Elab 3) oppure l’export grezzo “Financials Commesse”.',
+    emptyHint: 'Carica il DB commesse (foglio Elab 3) oppure l’export grezzo “Financials Commesse”. ' +
+      'Il Consolidated Reporting del mese prima è facoltativo: ne leggo solo il foglio CVS BU per riprendere righe, ordine e mesi già compilati; ' +
+      'senza, parto dalla tabella di settembre 2026 salvata nell’app. Il mese da compilare lo prendo dalla data nel nome del DB, e lo puoi cambiare.',
     accept: '.xlsx,.xls',
     multi: false,
   },
@@ -938,9 +941,10 @@ function processCapEx(wb, db, baseIn) {
     base: base.source, baseOf: base.of, baseWhen: base.when, embedded: !!base.embedded,
     sheets: [fvT.sheet, cvT.sheet, spT.sheet], rate,
   };
+  for (const it of out) it.review = { id: it.fields.projectId || '(riga manuale)', prev: cxNum(it.fields.prev), now: cxNum(it.fields.importo) };
   const C = (key, label, x) => ({ key, label, ...x });
   return {
-    results: out, totals, xl: { headerRow: base.headerRow },
+    results: out, totals, xl: { headerRow: base.headerRow }, sheet: capexSheetSpec(base.headerRow, prevRow, base.col),
     columns: [
       C('riga', 'Riga', { reviewOnly: true }),
       ...CX_KEYS.map((k, i) => C(k, `${CX_HEAD[i]} (${CX_COLS[i]})`, { exportLabel: CX_HEAD[i], numeric: CX_NUMERIC.has(k) })),
@@ -1017,8 +1021,12 @@ function capexCellLook(kind, col) {
 function xlPut(ws, addr, value, look = {}) {
   const cell = ws.getCell(addr);
   if (value !== undefined && value !== null && value !== '') cell.value = value;
-  cell.font = { ...XL_FONT, color: { argb: look.color || XL_COLOR.black }, ...(look.bold ? { bold: true } : {}) };
+  cell.font = {
+    ...XL_FONT, color: { argb: look.color || XL_COLOR.black },
+    ...(look.bold ? { bold: true } : {}), ...(look.italic ? { italic: true } : {}),
+  };
   if (look.fill) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: look.fill }, bgColor: { indexed: 64 } };
+  if (look.border) cell.border = look.border;
   if (look.nf) cell.numFmt = look.nf;
   if (look.align) cell.alignment = look.align;
   return cell;
@@ -1173,45 +1181,211 @@ async function buildCapexXlsx(C) {
   return wb.xlsx.writeBuffer();
 }
 
-async function exportCapexXlsx(C) {
-  const T = C.totals;
-  const name = `CapEx_R${T.headerRow}-AJ${T.lastRow}_${new Date().toISOString().slice(0, 10)}.xlsx`;
-  const blob = new Blob([await buildCapexXlsx(C)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  await saveFile(name, blob);
+/* CVS BU Excel: the same cells as the Reporting (I{months row}:AP…) with the look of
+   its CVS BU sheet, read off 20261008_Consolidated_Reporting_v2: month names in bold
+   above each Revenues / Direct costs pair, header in bold white on dark blue with a
+   thin rule above and below (the YTD pair in green), Seller to Comune and every month
+   column light yellow, amounts in the accounting format with two decimals, the
+   sheet's column widths and groupings, filter on the header, no gridlines. */
+const CB_COLOR = { header: 'FF003760', ytd: 'FF98D8A1', yellow: 'FFFFFFCC' };
+const CB_WIDTH = [19.44, 19.44, 23.44, 79.44, 22.22, 21.44, 40.22, 17.44, 25.55, 26.44];
+const CB_MONTH_WIDTH = {
+  S: 15.22, T: 16.78, U: 16.22, V: 16.78, W: 16.22, X: 16.55, Y: 16.22, Z: 16.22, AA: 19.44, AB: 16.55,
+  AC: 11.55, AD: 13.55, AE: 17.22, AF: 18, AG: 16.78, AH: 18, AI: 16, AJ: 16.55, AK: 13.55, AL: 13.55,
+  AM: 16.22, AN: 16.55, AO: 14.55, AP: 16.22,
+};
+// grouped columns, as in the Reporting: the oldest months one level deeper
+const CB_OUTLINE = { I: 1, S: 2, T: 2, U: 2, V: 2, W: 2, X: 2, Y: 2, Z: 2, AA: 2, AB: 2, AC: 2, AD: 2, AE: 1, AF: 1, AG: 1, AH: 1, AI: 1, AJ: 1, AK: 1, AL: 1, AM: 1, AN: 1 };
+
+function cvsBuCellLook(row, c, k) {
+  const thin = { style: 'thin', color: { indexed: 64 } };
+  if (row === 'month') {
+    if (c.month && /ytd/i.test(c.month)) return { fill: CB_COLOR.ytd, bold: true };
+    if (c.month) return { bold: true, nf: (k - CB.months) % 2 === 0 ? 'mmm-yy' : null, align: { horizontal: 'centerContinuous' } };
+    if ([CB.act, CB.name, CB.bu, CB.s1].includes(k)) return { align: { horizontal: 'center', vertical: 'middle' } };
+    if (k === CB.comune) return { align: { horizontal: 'left' } };
+    if (k === CB.s2) return { bold: true, italic: true, align: { horizontal: 'center', vertical: 'middle' } };
+    return {};
+  }
+  if (row === 'header') {
+    const ytd = c.month && /ytd/i.test(c.month);
+    return {
+      fill: ytd ? CB_COLOR.ytd : CB_COLOR.header, color: ytd ? XL_COLOR.black : XL_COLOR.white, bold: true,
+      border: ytd && c.isLast ? { top: thin, bottom: thin, right: thin } : { top: thin, bottom: thin },
+    };
+  }
+  if (k === CB.sino || k === CB.seller) return {};
+  if (k === CB.pid) return { fill: CB_COLOR.yellow, align: XL_TOP_LEFT };
+  if ([CB.act, CB.name, CB.comune].includes(k)) return { fill: CB_COLOR.yellow };
+  if (k === CB.chiave) return { nf: XL_NF_ACC2 };
+  if ([CB.bu, CB.s1, CB.s2].includes(k)) return { align: XL_TOP_LEFT };
+  if (c.month && /ytd/i.test(c.month)) return { nf: XL_NF_ACC2 };
+  return { fill: CB_COLOR.yellow, nf: XL_NF_ACC2 };
+}
+
+async function buildCvsBuXlsx(C) {
+  const S = C.sheet, T = C.totals, H = S.headerRow, MR = S.monthRow;
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'Riclassifica CiviSmart';
+  wb.calcProperties.fullCalcOnLoad = true;
+  const cols = S.cols.map((c, k) => ({ ...c, k, isLast: k === S.cols.length - 1 }));
+
+  const ws = wb.addWorksheet('CVS BU', {
+    properties: { tabColor: { argb: XL_COLOR.tab }, defaultRowHeight: 13.8 },
+    views: [{ state: 'normal', showGridLines: false, zoomScale: 90, zoomScaleNormal: 80, activeCell: `${S.copyFrom}${S.firstRow}` }],
+  });
+  const firstIdx = XLSX.utils.decode_col(cols[0].L) + 1;
+  for (let c = 1; c < firstIdx; c++) ws.getColumn(c).width = 3;
+  cols.forEach(c => {
+    const col = ws.getColumn(c.L);
+    col.width = c.k < CB_WIDTH.length ? CB_WIDTH[c.k] : (CB_MONTH_WIDTH[c.L] || 16.5);
+    col.font = XL_FONT;
+    if (CB_OUTLINE[c.L]) col.outlineLevel = CB_OUTLINE[c.L];
+  });
+  // Above the table the export has nothing: those rows are hidden, so the file opens
+  // on the table while every cell keeps its address in the Reporting.
+  for (let r = 1; r < MR; r++) { const row = ws.getRow(r); row.height = 13.8; row.hidden = true; }
+
+  // month names above each pair, then the header
+  cols.forEach(c => {
+    const label = c.month && (c.k - CB.months) % 2 === 0 ? c.month : (c.month && /ytd/i.test(c.month) ? c.month : null);
+    xlPut(ws, `${c.L}${MR}`, label, cvsBuCellLook('month', c, c.k));
+  });
+  cols.forEach(c => xlPut(ws, `${c.L}${H}`, c.head, cvsBuCellLook('header', c, c.k)));
+
+  const table = C.results.filter(it => it.xl && it.xl.row);
+  for (const it of table) {
+    const r = it.xl.row;
+    cols.forEach(c => {
+      const fx = S.formula(it, c.L);
+      const v = it.fields[c.key];
+      const value = fx ? { formula: fx.xl, result: String(v ?? '') } : (typeof v === 'number' ? v : (cxBlank(v) ? null : String(v)));
+      xlPut(ws, `${c.L}${r}`, value, cvsBuCellLook('data', c, c.k));
+    });
+  }
+  ws.autoFilter = `${cols[0].L}${H}:${cols[cols.length - 1].L}${T.lastRow}`;
+
+  /* --- Da rivedere --- */
+  const prevName = T.prevMonth || 'mese prima';
+  const ws2 = wb.addWorksheet('Da rivedere', {
+    properties: { tabColor: { argb: XL_COLOR.flagFill } },
+    views: [{ state: 'frozen', ySplit: 1, showGridLines: false, zoomScale: 90 }],
+  });
+  const head2 = ['Riga', 'Project ID', 'Activity Code', 'Stato', `Ricavi ${prevName}`, `Ricavi ${T.month}`, `Costi ${prevName}`, `Costi ${T.month}`, 'Nota'];
+  [8, 20, 26, 14, 18, 18, 18, 18, 110].forEach((w, i) => { ws2.getColumn(i + 1).width = w; });
+  head2.forEach((h, i) => xlPut(ws2, `${XLSX.utils.encode_col(i)}1`, h, XL_HEADER_LOOK));
+  ws2.getRow(1).height = 27.6;
+  const STATUS = { auto: 'ok', flag: 'da rivedere', anomaly: 'anomalia' };
+  let rr = 1;
+  for (const it of C.results) {
+    if (it.status === 'auto') continue;
+    rr++;
+    const top = { vertical: 'top' };
+    const stLook = it.status === 'anomaly'
+      ? { fill: XL_COLOR.anomalyFill, color: XL_COLOR.anomalyInk, align: top }
+      : { fill: XL_COLOR.flagFill, color: XL_COLOR.flagInk, align: top };
+    const f = it.fields;
+    const pid = it.xl && it.xl.row ? f[S.cols[CB.pid].key] : f.projectId;
+    const code = it.xl && it.xl.row ? f[S.cols[CB.act].key] : f.activityCode;
+    xlPut(ws2, `A${rr}`, it.xl && it.xl.row ? it.xl.row : '', { align: top });
+    xlPut(ws2, `B${rr}`, pid || '', { align: top });
+    xlPut(ws2, `C${rr}`, code || '', { align: top });
+    xlPut(ws2, `D${rr}`, STATUS[it.status], stLook);
+    xlPut(ws2, `E${rr}`, it.prev ? it.prev.rev : 0, { nf: XL_NF_ACC2, align: top });
+    xlPut(ws2, `F${rr}`, it.xl && it.xl.row ? cxNum(f[T.revL]) : cxNum(f.revenue), { nf: XL_NF_ACC2, align: top });
+    xlPut(ws2, `G${rr}`, it.prev ? it.prev.dc : 0, { nf: XL_NF_ACC2, align: top });
+    xlPut(ws2, `H${rr}`, it.xl && it.xl.row ? cxNum(f[T.dcL]) : 0, { nf: XL_NF_ACC2, align: top });
+    xlPut(ws2, `I${rr}`, it.reason || '', { align: { vertical: 'top', wrapText: true } });
+  }
+  ws2.autoFilter = `A1:I${Math.max(rr, 1)}`;
+
+  /* --- Controlli --- */
+  const ws3 = wb.addWorksheet('Controlli', { views: [{ state: 'normal', showGridLines: false, zoomScale: 90 }] });
+  [40, 24, 20, 18, 70].forEach((w, i) => { ws3.getColumn(i + 1).width = w; });
+  ['Controllo', `Nuovo (${T.month})`, `Mese prima (${prevName})`, 'Differenza', 'Con cosa confrontarlo nel Reporting']
+    .forEach((h, i) => xlPut(ws3, `${'ABCDE'[i]}1`, h, XL_HEADER_LOOK));
+  ws3.getRow(1).height = 27.6;
+  const sumF = (L, v) => ({ formula: `SUM('CVS BU'!${L}${S.firstRow}:${L}${T.lastRow})`, result: v });
+  const checks = [
+    [`Revenues ${T.month} (${T.revL})`, sumF(T.revL, T.rev), T.prevRev, { formula: 'B2-C2', result: cxR6(T.rev - T.prevRev) }, `riga ${MR - 1} “Sum” della colonna ${T.revL}, da confrontare con “FC” (riga ${MR - 2})`],
+    [`Direct costs ${T.month} (${T.dcL})`, sumF(T.dcL, T.dc), T.prevDc, { formula: 'B3-C3', result: cxR6(T.dc - T.prevDc) }, `riga ${MR - 1} “Sum” della colonna ${T.dcL}, da confrontare con “FC” (riga ${MR - 2})`],
+  ];
+  checks.forEach((row, j) => {
+    const r = j + 2;
+    xlPut(ws3, `A${r}`, row[0], { bold: true });
+    ['B', 'C', 'D'].forEach((L, k) => xlPut(ws3, `${L}${r}`, row[k + 1], { nf: XL_NF_ACC2 }));
+    xlPut(ws3, `E${r}`, row[4], { align: { wrapText: true, vertical: 'top' } });
+  });
+  const notes = [
+    ['Righe della tabella', `${S.firstRow}–${T.lastRow}: ${T.nBase} dalla tabella ${T.baseOf}${T.nNew ? `, ${T.nNew} nuove in fondo (righe ${cxRowRanges(T.newRows)})` : ', nessuna nuova'}.`],
+    ['Non più nel DB commesse', T.nGone ? `${T.nGone} righe con importi il mese prima: messe a 0 nella stessa riga. Elenco nel foglio “Da rivedere”.` : 'Nessuna.'],
+    ...(T.unimported ? [['Ricavi non importati', `${cxEur(T.unimported)} € su activity code da decidere: vedi “Da rivedere”.`]] : []),
+    ['Base righe e mesi già compilati', T.base],
+    ['Mese compilato', `${T.month}, colonne ${T.revL}:${T.dcL}${T.overwrite ? ' (era già compilato nella base: valori sostituiti con quelli del DB)' : ''}.`],
+    ['Tabella', `${T.firstCol}${H}:${T.lastCol}${T.lastRow}`],
+    null,
+    ['Come è costruita la tabella'],
+    ['Fonte', `${C.dbFileName || 'DB commesse'}: ricavi e costi diretti YTD per Project ID e Activity Code, con le regole CVS BU dell’app. Righe, ordine, anagrafiche e mesi precedenti dalla tabella CVS BU ${T.embedded ? `${T.baseOf} salvata nell’app` : `del Reporting caricato (${T.base})`}.`],
+    ['Colonne I, AO, AP', 'Formule del Reporting (“Inserire sì/no” e YTD): qui restano vuote, nel Reporting non vanno toccate.'],
+    ['Colonna O (Chiave)', 'Formula =M&K, come nel Reporting.'],
+    ['Come incollare', `Copia ${S.copyFrom}${S.firstRow}:${S.copyTo}${T.lastRow}, nel Reporting seleziona CVS BU!${S.copyFrom}${S.firstRow} e incolla (Ctrl+V): valori, formula di O e formato sono quelli del foglio, anche per le righe nuove.${S.extendNote ? ` Poi estendi ${S.extendNote}.` : ''}`],
+  ];
+  let r3 = checks.length + 3;
+  for (const row of notes) {
+    if (row) {
+      const title = row.length === 1;
+      xlPut(ws3, `A${r3}`, row[0], { bold: title, align: { vertical: 'top' } });
+      if (!title) {
+        ws3.mergeCells(`B${r3}:E${r3}`);
+        xlPut(ws3, `B${r3}`, row[1], { align: { wrapText: true, vertical: 'top' } });
+      }
+    }
+    r3++;
+  }
+  return wb.xlsx.writeBuffer();
+}
+
+// The Excel of a module whose output is a table of the Reporting (CapEx, CVS BU)
+async function exportSheetXlsx(C) {
+  const T = C.totals, S = C.sheet, day = new Date().toISOString().slice(0, 10);
+  const capex = S.name === 'CapEx';
+  const data = capex ? await buildCapexXlsx(C) : await buildCvsBuXlsx(C);
+  const name = capex
+    ? `CapEx_R${T.headerRow}-AJ${T.lastRow}_${day}.xlsx`
+    : `CVSBU_${T.firstCol}${S.monthRow}-${T.lastCol}${T.lastRow}_${T.month.replace(/\s+/g, '_')}_${day}.xlsx`;
+  await saveFile(name, new Blob([data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
 }
 
 // Numbers as the Reporting stores them: full precision, Italian separators
-function fmtCapexNum(v) {
+function fmtSheetNum(v) {
   return v.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 6 });
 }
 
-// Plain-text copy of S{first}:AJ{last}, for a straight paste at CapEx!S{first}.
-// R stays out because it holds the Reporting's own "già Presente" formula, which a
-// paste would wipe. Numbers keep their full precision with a decimal comma (Excel in
-// Italian); formulas are written without function names (=+T487, =+AF487+AG487+AH487)
-// so Excel reads them the same in any language; text that Excel would take for a
-// formula, a number or a date gets the apostrophe that keeps it as typed.
-function capexClipboardText(C) {
-  const T = C.totals;
+// Plain-text copy of a module's table, columns copyFrom:copyTo of rows first…last,
+// for a straight paste at {copyFrom}{first} in the Reporting. Columns holding the
+// Reporting's own lookups (R in CapEx; I, AO, AP in CVS BU) stay out, since a paste
+// would wipe them. Numbers keep their full precision with a decimal comma (Excel in
+// Italian); formulas are written without function names (=+T487, =+AF487+AG487+AH487,
+// =+M181&K181) so Excel reads them the same in any language; text that Excel would
+// take for a formula, a number or a date gets the apostrophe that keeps it as typed.
+function sheetClipboardText(C) {
+  const S = C.sheet;
   const num = (v) => String(cxR6(v)).replace('.', ',');
   const txt = (v) => {
     const t = String(v).replace(/[\t\r\n]+/g, ' ');
     return /^[=+\-@]/.test(t) || /^[\d\s.,/:-]+$/.test(t) ? `'${t}` : t;
   };
-  const byRow = new Map(C.results.map(it => [it.xl.row, it]));
+  const from = XLSX.utils.decode_col(S.copyFrom), to = XLSX.utils.decode_col(S.copyTo);
+  const cols = S.cols.filter(c => { const i = XLSX.utils.decode_col(c.L); return i >= from && i <= to; });
+  const byRow = new Map(C.results.filter(it => it.xl && it.xl.row).map(it => [it.xl.row, it]));
   const lines = [];
-  for (let r = T.firstRow; r <= T.lastRow; r++) {
+  for (let r = S.firstRow; r <= S.lastRow; r++) {
     const it = byRow.get(r);
-    if (!it) { lines.push(new Array(CX_KEYS.length - 1).fill('').join('\t')); continue; }
-    const f = it.fields;
-    lines.push(CX_KEYS.slice(1).map((k) => {
-      const v = f[k];
-      if (k === 'chiave') return f.projectId ? `=+T${r}` : '';
-      if (k === 'importo') {
-        if (it.xl.ai === 'sum') return `=+AF${r}+AG${r}+AH${r}`;
-        if (it.xl.ai === 'adj') return `=${num(it.xl.base)}+AG${r}+AH${r}`;
-        return num(cxNum(v));
-      }
+    if (!it) { lines.push(new Array(cols.length).fill('').join('\t')); continue; }
+    lines.push(cols.map((c) => {
+      const fx = S.formula(it, c.L);
+      if (fx) return fx.paste;
+      const v = it.fields[c.key];
       if (v === null || v === undefined || v === '') return '';
       if (typeof v === 'number') return num(v);
       return txt(v);
@@ -1220,14 +1394,34 @@ function capexClipboardText(C) {
   return lines.join('\r\n');
 }
 
-// Last month's table from the optional Consolidated Reporting. The file is large
-// (6-7 MB, sheets a million rows long): only its CapEx sheet is parsed.
-async function readCapexBaseFile(file) {
+// One sheet of the optional Consolidated Reporting. The file is large (6-7 MB, sheets
+// a million rows long): only the sheet that is needed gets parsed.
+async function readReportingSheet(file, sheetName) {
   const buf = await file.arrayBuffer();
   const names = XLSX.read(buf, { type: 'array', bookSheets: true }).SheetNames || [];
-  const sn = findSheet({ SheetNames: names }, ['CapEx']) || 'CapEx';
-  const wb = XLSX.read(buf, { type: 'array', sheets: [sn], raw: true, cellDates: false });
-  return readCapexBase(wb, file.name);
+  const sn = findSheet({ SheetNames: names }, [sheetName]) || sheetName;
+  return XLSX.read(buf, { type: 'array', sheets: [sn], raw: true, cellDates: false });
+}
+
+// How the CapEx table sits in the Reporting, for the screen, the copy and the export
+function capexSheetSpec(headerRow, lastRow, prevLabel) {
+  return {
+    name: 'CapEx', headerRow, firstRow: headerRow + 1, lastRow,
+    cols: CX_COLS.map((L, i) => ({ L, key: CX_KEYS[i], head: CX_HEAD[i], numeric: CX_NUMERIC.has(CX_KEYS[i]), label: L })),
+    copyFrom: 'S', copyTo: 'AJ',
+    extendNote: `la formula di R fino alla riga ${lastRow}`,
+    amountLabel: `${prevLabel} → nuovo`,
+    formula: (it, L) => {
+      const r = it.xl.row;
+      if (L === 'S') return it.fields.projectId ? { xl: `+T${r}`, paste: `=+T${r}` } : null;
+      if (L === 'AI' && it.xl.ai === 'sum') return { xl: `+SUM(AF${r}:AH${r})`, paste: `=+AF${r}+AG${r}+AH${r}` };
+      if (L === 'AI' && it.xl.ai === 'adj') {
+        return { xl: `${it.xl.base}+AG${r}+AH${r}`, paste: `=${String(cxR6(it.xl.base)).replace('.', ',')}+AG${r}+AH${r}` };
+      }
+      return null;
+    },
+    tipLine: (it) => `${prevLabel}: ${fmtEUR(cxNum(it.fields.prev))} € → nuovo: ${fmtEUR(cxNum(it.fields.importo))} € (Δ ${fmtEUR(cxNum(it.fields.delta))})`,
+  };
 }
 
 /* ============================================================================
@@ -1939,7 +2133,7 @@ function readCommesseRows(wb) {
 // top-level codes that appear identically in both layouts
 const CVSBU_KNOWN_TOP_CODES = new Set(['OPERATIONAL', 'PREPARATION', 'EXTRA LAVORI', 'CONSTRUCTION', 'GENERICO', '- No Activity Code -', 'NO ACTIVITY CODE']);
 
-function processCVSBU(wb, db) {
+function processCVSBU(wb, db, baseIn, opts = {}) {
   const parsed = readCommesseRows(wb);
   if (parsed.error) return { error: parsed.error };
   const { records, isRaw, sheetName, unmappedLeaves } = parsed;
@@ -2135,6 +2329,7 @@ function processCVSBU(wb, db) {
         seller: p.seller || '?', activityCode: g.code, projectName: p.projectName, projectId: g.pid,
         comune: p.comune || '?', chiave: '', bu: p.bu || '?',
         streamI: p.streamI || '?', streamII: p.streamII || '?',
+        // in cents, as the Reporting holds them (its Sum row has to match FC to the cent)
         revenue: Math.round(g.revenue * 100) / 100, directCost: Math.round(g.dc * 100) / 100,
         stato: p.isNew ? 'da rivedere' : (p.buMismatch ? 'BU da verificare' : ''),
       },
@@ -2220,26 +2415,317 @@ function processCVSBU(wb, db) {
     });
   }
 
+  // the month's rows go into last month's table, as in the Reporting
+  const base = baseIn || cvsBuBaseEmbedded();
+  if (base.error) return { error: base.error };
+  const table = buildCvsBuTable(results, base, opts);
+  if (table.error) return { error: table.error };
+  return { ...table, sheetName, isRaw };
+}
+
+// Two Project IDs on the same site: same cadastral code, same service segment and
+// same suffix (PPP-IPU-G514-01 and CL3-IPU-G514-01).
+function sameSiteProject(a, b) {
+  const c = cadastralCode(a), qa = String(a).split('-'), qb = String(b).split('-');
+  return a !== b && c !== null && cadastralCode(b) === c && qa[1] === qb[1] && qa[qa.length - 1] === qb[qb.length - 1];
+}
+
+/* ----------------------------------------------------------------------------
+   CVS BU as the Reporting's own table
+
+   In the Reporting the CVS BU sheet holds one row per Project ID x Activity Code
+   (header in row 180, data from 181) and, for every month, a Revenues / Direct
+   costs pair of YTD amounts (S:T February ... AM:AN December, then AO:AP YTD).
+   Each month the next pair gets filled and new combinations go at the bottom.
+
+   So the module rebuilds that table: the rows of last month's table, in the same
+   order and with their anagrafica, every month already there carried over, the
+   month being closed filled from the DB commesse (0 where a row is no longer in
+   it), new combinations appended. The base is the CVS BU sheet of the previous
+   Consolidated Reporting, or the September 2026 table shipped with the app.
+   Columns holding the Reporting's own formulas (I, O, AO, AP) are left to it;
+   O (Chiave = M&K) is written back as a formula in the copy and the Excel.
+   ---------------------------------------------------------------------------- */
+const MESI_IT = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
+
+// a month label from the row above the header: text as written, or an Excel date
+function cvsMonthLabel(v) {
+  if (typeof v === 'number' && v > 20000 && v < 80000) {
+    const d = new Date(Math.round((v - 25569) * 86400000));
+    return `${MESI_IT[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+  }
+  return cxBlank(v) ? null : String(v).trim();
+}
+const lowerFirst = (s) => (s ? s.charAt(0).toLowerCase() + s.slice(1) : s);
+
+// Last month's CVS BU table from a Consolidated Reporting. The header is the row
+// with "Project ID", then "Chiave" two columns right and "Business Stream I" four;
+// the table starts four columns left of Project ID (I when Project ID sits in M)
+// and runs through the last Revenues / Direct costs column.
+function readCvsBuBase(wb, label) {
+  const sn = findSheet(wb, ['CVS BU']);
+  if (!sn || !wb.Sheets[sn]) {
+    return { error: `Nel Consolidated Reporting non trovo il foglio “CVS BU”. Fogli presenti: ${wb.SheetNames.join(', ')}.` };
+  }
+  const ws = wb.Sheets[sn];
+  if (!ws['!ref']) return { error: 'Nel Consolidated Reporting il foglio “CVS BU” è vuoto.' };
+  const rg = XLSX.utils.decode_range(ws['!ref']);
+  const val = (r, c) => { const x = ws[XLSX.utils.encode_cell({ r, c })]; return x ? (x.v ?? null) : null; };
+  let hr = -1, pc = -1;
+  for (let r = rg.s.r; r <= rg.e.r && hr < 0; r++) {
+    for (let c = Math.max(rg.s.c, 4); c <= rg.e.c; c++) {
+      if (norm(val(r, c)) === 'project id' && norm(val(r, c + 2)) === 'chiave' && norm(val(r, c + 4)) === 'business stream i') {
+        hr = r; pc = c; break;
+      }
+    }
+  }
+  if (hr < 0) {
+    return { error: 'Nel foglio “CVS BU” del Consolidated Reporting non trovo l’intestazione della tabella (“Project ID”, “Chiave”, “Business Stream I”).' };
+  }
+  const c0 = pc - 4;
+  let c1 = c0 + 9; // through Business Stream II
+  while (['revenues', 'direct costs'].includes(norm(val(hr, c1 + 1)))) c1++;
+  const head = [], months = [];
+  for (let c = c0; c <= c1; c++) { head.push(val(hr, c)); months.push(cvsMonthLabel(val(hr - 1, c))); }
+  // the used range can run far below the table: stop at its last row with content
+  let lastRow = hr;
+  for (const addr of Object.keys(ws)) {
+    if (addr[0] === '!') continue;
+    const { r, c } = XLSX.utils.decode_cell(addr);
+    if (r > lastRow && c > c0 && c <= c1 && !cxBlank(ws[addr].v)) lastRow = r;
+  }
+  const rows = [];
+  for (let r = hr + 1; r <= lastRow; r++) {
+    const v = [];
+    let any = false;
+    for (let c = c0; c <= c1; c++) { const x = val(r, c); v.push(x); if (c > c0 && !cxBlank(x)) any = true; }
+    if (any) rows.push({ r: r + 1, v });
+  }
   return {
-    results,
-    columns: [
-      { key: 'seller', label: 'Seller (J)' },
-      { key: 'activityCode', label: 'Activity Code (K)' },
-      { key: 'projectName', label: 'Project Name (L)' },
-      { key: 'projectId', label: 'Project ID (M)' },
-      { key: 'comune', label: 'Comune (N)' },
-      { key: 'chiave', label: 'Chiave (O)' },
-      { key: 'bu', label: 'BU (P)' },
-      { key: 'streamI', label: 'Business Stream I (Q)' },
-      { key: 'streamII', label: 'Business Stream II (R)' },
-      { key: 'revenue', label: 'Revenues — mese corrente €', numeric: true },
-      { key: 'directCost', label: 'Direct Costs — mese corrente €', numeric: true },
-      // kept last on purpose: J:R stay contiguous for a straight paste into the sheet
-      { key: 'stato', label: 'Stato' },
-      { key: 'nota', label: 'Nota' },
-    ],
-    sheetName, isRaw,
+    source: label, of: 'del mese precedente', headerRow: hr + 1,
+    firstCol: XLSX.utils.encode_col(c0), head, months, rows,
   };
+}
+
+// The base shipped with the app: the September 2026 table (CVS BU!I180:AP1186)
+function cvsBuBaseEmbedded() {
+  const T = CVSBU_BASE_SETTEMBRE;
+  return {
+    source: T.source, of: `di ${T.label}`, headerRow: T.headerRow, firstCol: T.firstCol,
+    head: T.head, months: T.months, embedded: true,
+    rows: T.rows.map(a => ({ r: a[0], v: a.slice(1) })),
+  };
+}
+
+// Columns of the table by position from its first column (I):
+//   0 Inserire sì/no · 1 Seller · 2 Activity Code · 3 Project Name · 4 Project ID
+//   5 Comune · 6 Chiave · 7 BU · 8 Business Stream I · 9 Business Stream II
+//   10… one Revenues / Direct costs pair per month, the last pair is YTD
+const CB = { sino: 0, seller: 1, act: 2, name: 3, pid: 4, comune: 5, chiave: 6, bu: 7, s1: 8, s2: 9, months: 10 };
+
+function cvsBuLayout(base) {
+  const c0 = XLSX.utils.decode_col(base.firstCol);
+  const cols = base.head.map((h, k) => ({ k, L: XLSX.utils.encode_col(c0 + k), head: cxBlank(h) ? '' : String(h).trim() }));
+  const monthOf = (k) => (k >= CB.months ? base.months[k - ((k - CB.months) % 2)] || null : null);
+  const slots = [];
+  for (let k = CB.months; k + 1 < cols.length; k += 2) {
+    const label = monthOf(k);
+    if (!label || /ytd/i.test(label)) continue;
+    slots.push({ label, rev: k, dc: k + 1, revL: cols[k].L, dcL: cols[k + 1].L });
+  }
+  const formulaK = new Set([CB.sino, CB.chiave]);
+  cols.forEach(c => { if (c.k >= CB.months && /ytd/i.test(monthOf(c.k) || '')) formulaK.add(c.k); });
+  return { cols, slots, formulaK, monthOf };
+}
+
+// The month to fill: the one asked for, else the date in the DB file name
+// ("…al_31_10_2026…"), else the month after the last one filled in the base.
+function cvsBuPickSlot(Lay, base, opts) {
+  if (opts.month) {
+    const s = Lay.slots.find(x => x.label === opts.month);
+    if (s) return s;
+  }
+  const m = /(\d{1,2})[._\- ](\d{1,2})[._\- ](20\d{2})/.exec(opts.fileName || '');
+  if (m && Number(m[2]) >= 1 && Number(m[2]) <= 12) {
+    const want = `${MESI_IT[Number(m[2]) - 1]} ${m[3]}`.toLowerCase();
+    const s = Lay.slots.find(x => x.label.toLowerCase() === want);
+    if (s) return s;
+  }
+  let lastFilled = -1;
+  Lay.slots.forEach((s, i) => { if (base.rows.some(x => !cxBlank(x.v[s.rev]) || !cxBlank(x.v[s.dc]))) lastFilled = i; });
+  return Lay.slots[Math.min(lastFilled + 1, Lay.slots.length - 1)];
+}
+
+function buildCvsBuTable(moduleRows, base, opts) {
+  const Lay = cvsBuLayout(base);
+  if (!Lay.slots.length) return { error: 'Nella tabella CVS BU di base non trovo le colonne dei mesi (Revenues / Direct costs).' };
+  const slot = cvsBuPickSlot(Lay, base, opts);
+  const si = Lay.slots.indexOf(slot);
+  const colL = (k) => Lay.cols[k].L;
+  const key = (pid, code) => `${pid}\u0001${code}`;
+  const hasData = (x, s) => !cxBlank(x.v[s.rev]) || !cxBlank(x.v[s.dc]);
+
+  // what the DB commesse says for the month, by Project ID + Activity Code (an
+  // anomaly on the same pair adds up); the summary of an unknown code is no table row
+  const byKey = new Map(), extras = [];
+  for (const m of moduleRows) {
+    const pid = String(m.fields.projectId ?? '').trim(), code = String(m.fields.activityCode ?? '').trim();
+    if (m.matchNote === 'riepilogo' || !pid || pid === '—') { extras.push(m); continue; }
+    const k = key(pid, code);
+    const e = byKey.get(k);
+    if (!e) { byKey.set(k, { m, pid, code, rev: cxNum(m.fields.revenue), dc: cxNum(m.fields.directCost), status: m.status, reason: m.reason }); continue; }
+    e.rev += cxNum(m.fields.revenue); e.dc += cxNum(m.fields.directCost);
+    if (m.status === 'anomaly') { e.status = 'anomaly'; e.reason = [e.reason, m.reason].filter(Boolean).join(' '); }
+  }
+
+  const blankFields = () => { const f = {}; Lay.cols.forEach(c => { f[c.L] = null; }); return f; };
+  const prevLabelOf = (x) => {
+    for (let j = si - 1; j >= 0; j--) {
+      const s = Lay.slots[j];
+      if (hasData(x, s)) return { label: s.label, rev: cxNum(x.v[s.rev]), dc: cxNum(x.v[s.dc]) };
+    }
+    return null;
+  };
+
+  /* --- the rows of last month's table, same order --- */
+  const out = [], used = new Map(), lastOfPid = new Map(), gone = [];
+  let lastRow = base.headerRow;
+  for (const x of base.rows) {
+    const v = x.v;
+    lastRow = Math.max(lastRow, x.r);
+    const pid = cxBlank(v[CB.pid]) ? '' : String(v[CB.pid]).trim();
+    const code = cxBlank(v[CB.act]) ? '' : String(v[CB.act]).trim();
+    const f = blankFields();
+    Lay.cols.forEach(c => {
+      if (Lay.formulaK.has(c.k)) return;
+      const val = v[c.k];
+      f[c.L] = typeof val === 'number' ? cxR6(val) : (cxBlank(val) ? null : val);
+    });
+    if (pid || code) f[colL(CB.chiave)] = `${v[CB.pid] ?? ''}${v[CB.act] ?? ''}`;
+    if (pid) lastOfPid.set(pid, x);
+    const prev = prevLabelOf(x);
+    const k = key(pid, code);
+    let status = 'auto', reason = null, note;
+    if (pid && used.has(k)) {
+      f[slot.revL] = 0; f[slot.dcL] = 0; status = 'flag';
+      reason = `Chiave ripetuta: il valore è già sulla riga ${used.get(k)}. Qui messo 0.`;
+    } else {
+      if (pid) used.set(k, x.r);
+      const e = pid ? byKey.get(k) : null;
+      f[slot.revL] = e ? cxR6(e.rev) : 0;
+      f[slot.dcL] = e ? cxR6(e.dc) : 0;
+      if (e && e.status === 'anomaly') { status = 'anomaly'; reason = e.reason; }
+      else if (!e && prev && (prev.rev || prev.dc)) {
+        status = 'flag';
+        reason = `Presente a ${lowerFirst(prev.label)} (ricavi ${cxEur(prev.rev)} €, costi diretti ${cxEur(prev.dc)} €) ma non più nel DB commesse: messo 0.`;
+        gone.push({ pid, code, item: null });
+      }
+      note = e ? 'riga della tabella del mese prima' : `non presente nel DB commesse${prev && !(prev.rev || prev.dc) ? ' (0 anche prima)' : ''}`;
+    }
+    const item = {
+      key: nextKey(), status, reason, matchNote: note || null, fields: f,
+      xl: { row: x.r }, prev,
+      review: { id: `${pid || '(senza Project ID)'} · ${code}`, prev: prev ? prev.rev : 0, now: f[slot.revL] },
+    };
+    if (gone.length && gone[gone.length - 1].item === null) gone[gone.length - 1].item = item;
+    out.push(item);
+  }
+
+  /* --- new combinations, at the bottom in the order of the DB --- */
+  const added = [];
+  for (const [k, e] of byKey) {
+    if (used.has(k)) continue;
+    lastRow++;
+    const f = blankFields(), m = e.m.fields;
+    const same = lastOfPid.get(e.pid);
+    let status = e.status, reason = e.reason, note;
+    if (same) {
+      // the same project already has a row: its anagrafica comes from the table itself
+      [CB.seller, CB.name, CB.comune, CB.bu, CB.s1, CB.s2].forEach(kk => { f[colL(kk)] = cxBlank(same.v[kk]) ? null : same.v[kk]; });
+      if (status !== 'anomaly') { status = 'auto'; reason = null; }
+      note = `Riga nuova in fondo alla tabella: anagrafica dalla riga ${same.r} (stessa commessa).`;
+    } else {
+      f[colL(CB.seller)] = m.seller; f[colL(CB.name)] = m.projectName; f[colL(CB.comune)] = m.comune;
+      f[colL(CB.bu)] = m.bu; f[colL(CB.s1)] = m.streamI; f[colL(CB.s2)] = m.streamII;
+      note = `Riga nuova in fondo alla tabella. ${e.m.matchNote || ''}`.trim();
+    }
+    f[colL(CB.act)] = e.code; f[colL(CB.pid)] = e.pid; f[colL(CB.chiave)] = `${e.pid}${e.code}`;
+    f[slot.revL] = cxR6(e.rev); f[slot.dcL] = cxR6(e.dc);
+    added.push({
+      key: nextKey(), status, reason: reason || null, matchNote: note, fields: f,
+      xl: { row: lastRow, isNew: true }, prev: null,
+      review: { id: `${e.pid} · ${e.code}`, prev: 0, now: f[slot.revL] },
+    });
+  }
+  // a combination gone from the DB and a new one on the same site point at each other
+  for (const g of gone) {
+    const twins = added.filter(a => a.fields[colL(CB.act)] === g.code && sameSiteProject(g.pid, a.fields[colL(CB.pid)]));
+    if (!twins.length) continue;
+    g.item.reason += ` Forse sostituita da ${twins.map(a => `${a.fields[colL(CB.pid)]} (riga ${a.xl.row})`).join(', ')}, nuova, stesso codice catastale.`;
+    for (const a of twins) {
+      const t = `Potrebbe sostituire ${g.pid} (riga ${g.item.xl.row}), sparita dal DB, stesso codice catastale.`;
+      a.reason = a.reason ? `${a.reason.replace(/[.\s]+$/, '')} · ${t}` : t;
+      if (a.status === 'auto') a.status = 'flag';
+    }
+  }
+  const extraRows = extras.map(m => ({
+    ...m, xl: { row: null }, prev: null,
+    review: { id: `${m.fields.activityCode} (riepilogo)`, prev: 0, now: cxNum(m.fields.revenue) },
+  }));
+
+  /* --- totals --- */
+  const table = [...out, ...added];
+  const sum = (L) => cxR6(table.reduce((a, it) => a + cxNum(it.fields[L]), 0));
+  let prevSlot = null;
+  for (let j = si - 1; j >= 0 && !prevSlot; j--) if (base.rows.some(x => hasData(x, Lay.slots[j]))) prevSlot = Lay.slots[j];
+  const lastSlot = Lay.slots[Lay.slots.length - 1];
+  const firstL = Lay.cols[0].L, lastL = Lay.cols[Lay.cols.length - 1].L;
+  const totals = {
+    month: slot.label, revL: slot.revL, dcL: slot.dcL,
+    rev: sum(slot.revL), dc: sum(slot.dcL),
+    prevMonth: prevSlot ? prevSlot.label : null,
+    prevRev: prevSlot ? cxR6(base.rows.reduce((a, x) => a + cxNum(x.v[prevSlot.rev]), 0)) : 0,
+    prevDc: prevSlot ? cxR6(base.rows.reduce((a, x) => a + cxNum(x.v[prevSlot.dc]), 0)) : 0,
+    overwrite: base.rows.some(x => hasData(x, slot)),
+    nBase: out.length, nNew: added.length, nGone: gone.length,
+    newRows: added.map(a => a.xl.row),
+    headerRow: base.headerRow, firstRow: base.headerRow + 1, lastRow,
+    base: base.source, baseOf: base.of, embedded: !!base.embedded,
+    firstCol: firstL, lastCol: lastL,
+    unimported: cxR6(extras.reduce((a, m) => a + cxNum(m.fields.revenue), 0)),
+  };
+
+  const prevName = totals.prevMonth ? lowerFirst(totals.prevMonth) : 'mese prima';
+  const M = colL(CB.pid), K = colL(CB.act), O = colL(CB.chiave);
+  const extendCols = [colL(CB.sino), ...Lay.cols.filter(c => Lay.formulaK.has(c.k) && c.k >= CB.months).map(c => c.L)];
+  const sheet = {
+    name: 'CVS BU', headerRow: base.headerRow, monthRow: base.headerRow - 1,
+    firstRow: base.headerRow + 1, lastRow,
+    cols: Lay.cols.map(c => ({
+      L: c.L, key: c.L, head: c.head, numeric: c.k >= CB.months,
+      label: Lay.monthOf(c.k) ? `${c.L} · ${Lay.monthOf(c.k)}` : c.L,
+      month: Lay.monthOf(c.k), cur: c.L === slot.revL || c.L === slot.dcL, formula: Lay.formulaK.has(c.k),
+    })),
+    copyFrom: colL(CB.seller), copyTo: lastSlot.dcL,
+    extendNote: added.length
+      ? `le formule di ${extendCols.join(', ')} fino alla riga ${lastRow} (righe nuove ${cxRowRanges(totals.newRows)})`
+      : null,
+    amountLabel: `Ricavi ${prevName} → ${lowerFirst(slot.label)}`,
+    formula: (it, L) => (L === O && it.fields[O] ? { xl: `+${M}${it.xl.row}&${K}${it.xl.row}`, paste: `=+${M}${it.xl.row}&${K}${it.xl.row}` } : null),
+    tipLine: (it) => (it.prev
+      ? `${it.prev.label}: ricavi ${fmtEUR(it.prev.rev)} €, costi ${fmtEUR(it.prev.dc)} € → ${slot.label}: ricavi ${fmtEUR(cxNum(it.fields[slot.revL]))} €, costi ${fmtEUR(cxNum(it.fields[slot.dcL]))} €`
+      : `${slot.label}: ricavi ${fmtEUR(cxNum(it.fields[slot.revL]))} €, costi ${fmtEUR(cxNum(it.fields[slot.dcL]))} €`),
+  };
+  // CSV: the columns of the sheet that get pasted (Seller … last month), then Stato and Nota
+  const columns = [
+    ...sheet.cols.filter(c => {
+      const i = XLSX.utils.decode_col(c.L);
+      return i >= XLSX.utils.decode_col(sheet.copyFrom) && i <= XLSX.utils.decode_col(sheet.copyTo);
+    }).map(c => ({ key: c.key, label: c.month ? `${c.head} ${c.month} (${c.L})` : `${c.head} (${c.L})`, exportLabel: c.month ? `${c.head} ${c.month}` : c.head, numeric: c.numeric })),
+    { key: 'stato', label: 'Stato' },
+    { key: 'nota', label: 'Nota' },
+  ];
+  return { results: [...table, ...extraRows], totals, sheet, columns, slots: Lay.slots.map(s => s.label) };
 }
 
 /* ============================================================================
@@ -2348,50 +2834,49 @@ function CapexChecks({ C }) {
   );
 }
 
-// CapEx on screen: the same table as CapEx!R{header}:AJ… in the Reporting (same
+// A module's output on screen as the table of the Reporting it goes into (same
 // columns, same headers, same rows, nothing in between), so what you see is what gets
-// pasted. Row numbers, status dots and column letters are drawn by CSS
-// pseudo-elements, which a copy never picks up; notes and last month's value show on
-// hover and in the list of rows to review.
-const CX_STATUS_LABEL = { auto: 'ok', flag: 'da rivedere', anomaly: 'anomalia' };
+// pasted. Row numbers, status dots and column letters (with the month, for CVS BU)
+// are drawn by CSS pseudo-elements, which a copy never picks up; notes and last
+// month's amounts show on hover and in the list of rows to review.
+const SHEET_STATUS_LABEL = { auto: 'ok', flag: 'da rivedere', anomaly: 'anomalia' };
 
-function CapexTable({ C, rows }) {
-  const prevLabel = C.columns.find(c => c.key === 'prev')?.label || 'AI mese prec.';
-  const tip = (r) => {
-    const f = r.fields;
-    return [
-      `Riga ${r.xl.row} · ${CX_STATUS_LABEL[r.status]}`,
-      r.reason || r.matchNote || null,
-      `${prevLabel}: ${fmtEUR(cxNum(f.prev))} € → nuovo: ${fmtEUR(cxNum(f.importo))} € (Δ ${fmtEUR(cxNum(f.delta))})`,
-    ].filter(Boolean).join('\n');
-  };
-  const cell = (r, k) => {
-    const v = r.fields[k];
+function ReportingTable({ C, rows }) {
+  const S = C.sheet;
+  const tableRows = rows.filter(r => r.xl && r.xl.row);
+  const tip = (r) => [
+    `Riga ${r.xl.row} · ${SHEET_STATUS_LABEL[r.status]}`,
+    r.reason || r.matchNote || null,
+    S.tipLine ? S.tipLine(r) : null,
+  ].filter(Boolean).join('\n');
+  const cell = (r, c) => {
+    const v = r.fields[c.key];
     if (v === null || v === undefined || v === '') return '';
-    return typeof v === 'number' && CX_NUMERIC.has(k) ? fmtCapexNum(v) : String(v);
+    return typeof v === 'number' && c.numeric ? fmtSheetNum(v) : String(v);
   };
+  const cls = (c, base) => [base, c.numeric ? 'col-numeric' : '', c.cur ? 'cur' : ''].filter(Boolean).join(' ');
   return (
-    <section className="table-wrap rep-wrap" aria-label="Tabella CapEx come nel Consolidated Reporting">
+    <section className="table-wrap rep-wrap" aria-label={`Tabella ${S.name} come nel Consolidated Reporting`}>
       <table className="rep-table">
         <thead>
           <tr>
-            {CX_KEYS.map((k, i) => (
-              <th key={k} data-col={CX_COLS[i]} data-row={i === 0 ? C.xl.headerRow : undefined}
-                className={CX_NUMERIC.has(k) ? 'col-numeric' : ''}>{CX_HEAD[i]}</th>
+            {S.cols.map((c, i) => (
+              <th key={c.L} data-col={c.label} data-row={i === 0 ? S.headerRow : undefined}
+                className={cls(c, '')} title={c.formula ? 'Formula del Reporting: l’app la lascia vuota' : undefined}>{c.head}</th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {rows.map(r => (
+          {tableRows.map(r => (
             <tr key={r.key} className={`row-${r.status}`} title={tip(r)}>
-              {CX_KEYS.map((k, i) => (
-                <td key={k} data-row={i === 0 ? r.xl.row : undefined} data-status={i === 0 ? r.status : undefined}
-                  className={CX_NUMERIC.has(k) ? 'col-numeric mono' : 'mono'}>{cell(r, k)}</td>
+              {S.cols.map((c, i) => (
+                <td key={c.L} data-row={i === 0 ? r.xl.row : undefined} data-status={i === 0 ? r.status : undefined}
+                  className={cls(c, 'mono')}>{cell(r, c)}</td>
               ))}
             </tr>
           ))}
-          {rows.length === 0 && (
-            <tr><td colSpan={CX_KEYS.length} className="empty-filter">Nessuna riga in questa categoria.</td></tr>
+          {tableRows.length === 0 && (
+            <tr><td colSpan={S.cols.length} className="empty-filter">Nessuna riga in questa categoria.</td></tr>
           )}
         </tbody>
       </table>
@@ -2401,11 +2886,10 @@ function CapexTable({ C, rows }) {
 
 // The rows that need a look, with their notes: the same list as the "Da rivedere"
 // sheet of the Excel export.
-function CapexReview({ C }) {
+function ReviewList({ C }) {
   const items = C.results.filter(r => r.status !== 'auto');
   if (!items.length) return null;
   const nFlag = items.filter(r => r.status === 'flag').length, nAnom = items.length - nFlag;
-  const prevLabel = C.columns.find(c => c.key === 'prev')?.label || 'AI mese prec.';
   const parts = [
     nFlag ? `${nFlag} ${nFlag === 1 ? 'riga' : 'righe'} da rivedere` : null,
     nAnom ? `${nAnom} ${nAnom === 1 ? 'anomalia' : 'anomalie'}` : null,
@@ -2417,18 +2901,66 @@ function CapexReview({ C }) {
         {items.map(r => (
           <div key={r.key} className={`cx-review-item status-${r.status}`}>
             <div className="cx-review-head">
-              <span className="mono cx-review-row">riga {r.xl.row}</span>
-              <span className="mono cx-review-pid">{r.fields.projectId || '(riga manuale)'}</span>
+              <span className="mono cx-review-row">{r.xl && r.xl.row ? `riga ${r.xl.row}` : 'fuori tabella'}</span>
+              <span className="mono cx-review-pid">{r.review ? r.review.id : (r.fields.projectId || '')}</span>
               <StatusPill status={r.status} />
-              <span className="mono cx-review-amt" title={`${prevLabel} → nuovo`}>
-                {fmtEUR(cxNum(r.fields.prev))} → {fmtEUR(cxNum(r.fields.importo))} €
-              </span>
+              {r.review && (
+                <span className="mono cx-review-amt" title={C.sheet.amountLabel}>
+                  {fmtEUR(cxNum(r.review.prev))} → {fmtEUR(cxNum(r.review.now))} €
+                </span>
+              )}
             </div>
             <p className="cx-review-note">{r.reason}</p>
           </div>
         ))}
       </div>
     </details>
+  );
+}
+
+// CVS BU: the month being filled, its totals against the month before, and how to paste
+function CvsBuChecks({ C, onMonth, busy }) {
+  const T = C.totals, S = C.sheet;
+  const eur = (v) => `${fmtEUR(v)} €`;
+  const prev = T.prevMonth ? lowerFirst(T.prevMonth) : null;
+  const lines = [
+    { label: `Revenues ${lowerFirst(T.month)}`, col: `${T.revL}${S.firstRow}:${T.revL}${T.lastRow}`, now: T.rev, prev: T.prevRev },
+    { label: `Direct costs ${lowerFirst(T.month)}`, col: `${T.dcL}${S.firstRow}:${T.dcL}${T.lastRow}`, now: T.dc, prev: T.prevDc },
+  ];
+  return (
+    <section className="capex-checks" aria-label="Mese compilato e totali della tabella CVS BU">
+      <div className="cb-month">
+        <label htmlFor="cvsbu-month">Mese da compilare</label>
+        <select id="cvsbu-month" value={T.month} disabled={busy} onChange={(e) => onMonth(e.target.value)}>
+          {C.slots.map(m => <option key={m} value={m}>{m}</option>)}
+        </select>
+        <span className="mono cb-cols">colonne {T.revL}:{T.dcL}</span>
+        {T.overwrite && <span className="cb-warn">già compilato nella base: i valori vengono sostituiti con quelli del DB</span>}
+      </div>
+      <div className="cx-row cx-head">
+        <span>Totali della colonna</span>
+        <span className="cx-n">{lowerFirst(T.month)}</span>
+        <span className="cx-n">{prev || 'mese prima'}</span>
+        <span className="cx-to">nel Reporting</span>
+      </div>
+      {lines.map(l => (
+        <div className="cx-row" key={l.label}>
+          <span className="cx-label">{l.label} <span className="cx-rng mono">{l.col}</span></span>
+          <span className="cx-n mono" data-label={lowerFirst(T.month)}>{eur(l.now)}</span>
+          <span className="cx-n cx-prev mono" data-label={prev || 'mese prima'}>{prev ? eur(l.prev) : '—'}</span>
+          <span className="cx-to">riga {S.monthRow - 1} “Sum”, da confrontare con “FC”</span>
+        </div>
+      ))}
+      <p className="cx-how">
+        Righe {S.firstRow}–{T.lastRow}: {T.nBase} dalla tabella {T.baseOf}{T.nNew ? `, ${T.nNew} nuove in fondo (${cxRowRanges(T.newRows)})` : ', nessuna nuova'}
+        {T.nGone ? `, ${T.nGone} non più nel DB e messe a 0` : ''}. Base: {T.base}.
+        {T.embedded && <> Se dopo settembre hai cambiato la tabella CVS BU nel Reporting, carica il Reporting: incollando la tabella intera sovrascriveresti quelle modifiche.</>}
+        {T.unimported ? <> Ricavi con activity code da decidere, non importati: {eur(T.unimported)} (vedi “Da rivedere”).</> : null}
+        {' '}Per incollare: «Copia tabella», poi nel Reporting seleziona CVS BU!{S.copyFrom}{S.firstRow} e incolla
+        {S.extendNote ? <>; infine estendi {S.extendNote}.</> : '.'} Dall’Excel esportato, che ha lo stesso formato del foglio CVS BU:
+        copia {S.copyFrom}{S.firstRow}:{S.copyTo}{T.lastRow} e incollalo in CVS BU!{S.copyFrom}{S.firstRow} con Ctrl+V.
+      </p>
+    </section>
   );
 }
 
@@ -2515,13 +3047,15 @@ export default function App() {
     return !!files.main;
   }, [mode, files]);
 
-  const handleProcess = useCallback(async () => {
+  // opts.month: CVS BU, the month column to fill when the viewer picks another one
+  const handleProcess = useCallback(async (opts) => {
+    const month = typeof opts?.month === 'string' ? opts.month : undefined;
     setProcessing(true); setError(null); setOutput(null); setFilter(null); setCopyState(null);
     try {
       let result;
       if (mode === 'capex') {
         const wb = await readWorkbookFromFile(files.main);
-        const base = files.prev ? await readCapexBaseFile(files.prev) : null;
+        const base = files.prev ? readCapexBase(await readReportingSheet(files.prev, 'CapEx'), files.prev.name) : null;
         result = processCapEx(wb, db, base);
         if (!result.error) result.dbFileName = files.main.name;
       } else if (mode === 'bdv') {
@@ -2534,7 +3068,9 @@ export default function App() {
         result = processSGP(wb, db);
       } else if (mode === 'cvsbu') {
         const wb = await readWorkbookFromFile(files.main);
-        result = processCVSBU(wb, db);
+        const base = files.prev ? readCvsBuBase(await readReportingSheet(files.prev, 'CVS BU'), files.prev.name) : null;
+        result = processCVSBU(wb, db, base, { month, fileName: files.main.name });
+        if (!result.error) result.dbFileName = files.main.name;
       }
       if (result.error) setError(result.error);
       else setOutput(result);
@@ -2582,7 +3118,8 @@ export default function App() {
       label: c.exportLabel || c.label,
       get: (r) => c.numeric ? fmtEURExport(cellValue(r, c.key)) : (cellValue(r, c.key) ?? ''),
     }));
-    const csv = toCSV(output.results, columns);
+    const rows = output.sheet ? output.results.filter(r => r.xl && r.xl.row) : output.results;
+    const csv = toCSV(rows, columns);
     try {
       await downloadText(`${mode}_pulito_${new Date().toISOString().slice(0, 10)}.csv`, csv);
     } catch (e) {
@@ -2593,9 +3130,9 @@ export default function App() {
   // CapEx: the table goes to the clipboard ready to paste at CapEx!S{first}. Called
   // straight from the click, as the clipboard requires; where the browser refuses,
   // the same text is shown selected for a manual Ctrl+C.
-  const handleCopyCapex = () => {
-    if (!output) return;
-    const text = capexClipboardText(output);
+  const handleCopySheet = () => {
+    if (!output || !output.sheet) return;
+    const text = sheetClipboardText(output);
     const write = navigator.clipboard?.writeText ? navigator.clipboard.writeText(text) : Promise.reject(new Error('no clipboard'));
     write.then(() => setCopyState({ ok: true }), () => setCopyState({ ok: false, text }));
   };
@@ -2609,7 +3146,7 @@ export default function App() {
   const handleExportXlsx = async () => {
     if (!output) return;
     try {
-      await exportCapexXlsx(output);
+      await exportSheetXlsx(output);
     } catch (e) {
       setError(`Esportazione Excel non riuscita: ${e.message}`);
     }
@@ -2689,12 +3226,20 @@ export default function App() {
                 hint="riprendo righe e anagrafiche dal foglio CapEx; senza, uso la tabella di settembre salvata nell’app"
                 accept=".xlsx,.xlsm" onFile={setFile('prev')} fileName={files.prev?.name} onClear={clearFile('prev')} />
             </div>
+          ) : mode === 'cvsbu' ? (
+            <div className="upload-grid">
+              <UploadSlot label="DB commesse" hint="foglio Elab 3, oppure l’export grezzo “Financials Commesse”"
+                accept={modeConfig.accept} onFile={setFile('main')} fileName={files.main?.name} />
+              <UploadSlot label="Consolidated Reporting del mese prima (facoltativo)"
+                hint="riprendo righe, ordine e mesi già compilati dal foglio CVS BU; senza, uso la tabella di settembre salvata nell’app"
+                accept=".xlsx,.xlsm" onFile={setFile('prev')} fileName={files.prev?.name} onClear={clearFile('prev')} />
+            </div>
           ) : (
             <UploadSlot label={modeConfig.fileHint} hint="trascina qui o clicca per scegliere" accept={modeConfig.accept}
               onFile={setFile('main')} fileName={files.main?.name} />
           )}
 
-          <button className="process-btn" disabled={!canProcess || processing} onClick={handleProcess}>
+          <button className="process-btn" disabled={!canProcess || processing} onClick={() => handleProcess()}>
             {processing ? <Loader2 size={16} className="spin" /> : <RefreshCw size={16} />}
             {processing ? 'Elaborazione…' : 'Elabora'}
           </button>
@@ -2749,10 +3294,10 @@ export default function App() {
                 </button>
               )}
               <div className="summary-spacer" />
-              {mode === 'capex' && output.totals && (
+              {output.sheet && (
                 <>
-                  <button className="export-btn export-primary" onClick={handleCopyCapex}
-                    title={`Copia S${output.totals.firstRow}:AJ${output.totals.lastRow}, da incollare in CapEx!S${output.totals.firstRow}`}>
+                  <button className="export-btn export-primary" onClick={handleCopySheet}
+                    title={`Copia ${output.sheet.copyFrom}${output.sheet.firstRow}:${output.sheet.copyTo}${output.sheet.lastRow}, da incollare in ${output.sheet.name}!${output.sheet.copyFrom}${output.sheet.firstRow}`}>
                     <ClipboardCopy size={14} /> Copia tabella
                   </button>
                   <button className="export-btn" onClick={handleExportXlsx}>
@@ -2765,12 +3310,13 @@ export default function App() {
               </button>
             </section>
 
-            {mode === 'capex' && output.totals && copyState && (copyState.ok ? (
+            {output.sheet && copyState && (copyState.ok ? (
               <div className="copy-box" role="status">
                 <ClipboardCheck size={16} />
                 <span>
-                  Copiate le righe {output.totals.firstRow}–{output.totals.lastRow}, colonne S:AJ. Nel Reporting, foglio CapEx,
-                  seleziona <b>S{output.totals.firstRow}</b> e incolla (Ctrl+V). Poi estendi la formula di R fino alla riga {output.totals.lastRow}.
+                  Copiate le righe {output.sheet.firstRow}–{output.sheet.lastRow}, colonne {output.sheet.copyFrom}:{output.sheet.copyTo}.
+                  Nel Reporting, foglio {output.sheet.name}, seleziona <b>{output.sheet.copyFrom}{output.sheet.firstRow}</b> e incolla (Ctrl+V).
+                  {output.sheet.extendNote ? ` Poi estendi ${output.sheet.extendNote}.` : ''}
                 </span>
                 <button className="copy-box-close" onClick={() => setCopyState(null)} aria-label="Chiudi"><X size={13} /></button>
               </div>
@@ -2778,24 +3324,27 @@ export default function App() {
               <div className="copy-box copy-box-manual" role="status">
                 <span>
                   Il browser non permette la copia automatica qui. Il testo qui sotto è già selezionato: premi Ctrl+C (Cmd+C su Mac),
-                  poi nel Reporting seleziona CapEx!S{output.totals.firstRow} e incolla.
+                  poi nel Reporting seleziona {output.sheet.name}!{output.sheet.copyFrom}{output.sheet.firstRow} e incolla.
                 </span>
                 <textarea ref={copyAreaRef} readOnly value={copyState.text} rows={4} aria-label="Tabella da copiare" />
                 <button className="copy-box-close" onClick={() => setCopyState(null)} aria-label="Chiudi"><X size={13} /></button>
               </div>
             ))}
 
-            {mode === 'capex' && output.totals && <CapexChecks C={output} />}
+            {mode === 'capex' && output.sheet && <CapexChecks C={output} />}
+            {mode === 'cvsbu' && output.sheet && (
+              <CvsBuChecks C={output} busy={processing} onMonth={(m) => handleProcess({ month: m })} />
+            )}
 
-            {mode === 'capex' && output.totals ? (
+            {output.sheet ? (
               <>
-                <CapexReview C={output} />
+                <ReviewList C={output} />
                 {filter && (
                   <p className="filter-note">
                     Filtro attivo: vedi {visibleResults.length} righe su {output.results.length}. «Copia tabella» e le esportazioni prendono sempre tutte le righe.
                   </p>
                 )}
-                <CapexTable C={output} rows={visibleResults} />
+                <ReportingTable C={output} rows={visibleResults} />
               </>
             ) : (
             <section className="table-wrap">
@@ -3223,6 +3772,19 @@ td.col-note { white-space: normal; min-width: 380px; max-width: 560px; color: va
 .cx-review-pid { color: var(--paper); }
 .cx-review-amt { margin-left: auto; color: var(--paper-dim); font-size: 11.5px; }
 .cx-review-note { margin: 5px 0 0; font-size: 12px; line-height: 1.5; color: var(--paper-dim); max-width: 110ch; }
+
+/* CVS BU: the month being filled stands out, on screen only */
+.rep-table tbody td.cur { background: var(--signal-wash); color: var(--paper); }
+.rep-table thead th.cur::before { color: var(--signal); }
+.cb-month { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.cb-month label { font-size: 12px; font-weight: 600; color: var(--paper); }
+.cb-month select {
+  font: inherit; font-size: 12.5px; color: var(--paper); background: var(--panel-raised);
+  border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; cursor: pointer;
+}
+.cb-month select:disabled { opacity: 0.6; cursor: wait; }
+.cb-cols { font-size: 11.5px; color: var(--wire); }
+.cb-warn { font-size: 11.5px; color: var(--signal); }
 
 .copy-box {
   display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; position: relative;
