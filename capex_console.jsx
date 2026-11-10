@@ -4,7 +4,7 @@ import CAPEX_BASE_SETTEMBRE from './capex_base_settembre_2026.json';
 import {
   Upload, FileSpreadsheet, Check, AlertTriangle, AlertOctagon, Download,
   Database, ChevronRight, Loader2, Info, Zap, Sun, Building2, Landmark,
-  RefreshCw, X, ExternalLink
+  RefreshCw, X, ExternalLink, ClipboardCopy, ClipboardCheck
 } from 'lucide-react';
 
 /* ============================================================================
@@ -1077,6 +1077,46 @@ async function exportCapexXlsx(C) {
   const name = `CapEx_R${T.headerRow}-AJ${T.lastRow}_${new Date().toISOString().slice(0, 10)}.xlsx`;
   const blob = new Blob([buildCapexXlsx(C)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   await saveFile(name, blob);
+}
+
+// Numbers as the Reporting stores them: full precision, Italian separators
+function fmtCapexNum(v) {
+  return v.toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 6 });
+}
+
+// Plain-text copy of S{first}:AJ{last}, for a straight paste at CapEx!S{first}.
+// R stays out because it holds the Reporting's own "già Presente" formula, which a
+// paste would wipe. Numbers keep their full precision with a decimal comma (Excel in
+// Italian); formulas are written without function names (=+T487, =+AF487+AG487+AH487)
+// so Excel reads them the same in any language; text that Excel would take for a
+// formula, a number or a date gets the apostrophe that keeps it as typed.
+function capexClipboardText(C) {
+  const T = C.totals;
+  const num = (v) => String(cxR6(v)).replace('.', ',');
+  const txt = (v) => {
+    const t = String(v).replace(/[\t\r\n]+/g, ' ');
+    return /^[=+\-@]/.test(t) || /^[\d\s.,/:-]+$/.test(t) ? `'${t}` : t;
+  };
+  const byRow = new Map(C.results.map(it => [it.xl.row, it]));
+  const lines = [];
+  for (let r = T.firstRow; r <= T.lastRow; r++) {
+    const it = byRow.get(r);
+    if (!it) { lines.push(new Array(CX_KEYS.length - 1).fill('').join('\t')); continue; }
+    const f = it.fields;
+    lines.push(CX_KEYS.slice(1).map((k) => {
+      const v = f[k];
+      if (k === 'chiave') return f.projectId ? `=+T${r}` : '';
+      if (k === 'importo') {
+        if (it.xl.ai === 'sum') return `=+AF${r}+AG${r}+AH${r}`;
+        if (it.xl.ai === 'adj') return `=${num(it.xl.base)}+AG${r}+AH${r}`;
+        return num(cxNum(v));
+      }
+      if (v === null || v === undefined || v === '') return '';
+      if (typeof v === 'number') return num(v);
+      return txt(v);
+    }).join('\t'));
+  }
+  return lines.join('\r\n');
 }
 
 // Last month's table from the optional Consolidated Reporting. The file is large
@@ -2198,11 +2238,95 @@ function CapexChecks({ C }) {
       <p className="cx-how">
         Righe {T.firstRow}–{T.lastRow}, base: {T.base}.
         {T.prevAdj !== 0 && <> Le rettifiche del mese prima in Adj.1/Adj.2 ({eur(T.prevAdj)}) non sono riportate: sono elencate tra le righe da rivedere.</>}
-        {' '}Per incollare: Esporta Excel, copia S{T.firstRow}:AJ{T.lastRow}, nel Reporting seleziona CapEx!S{T.firstRow} e
-        usa Incolla speciale › Formule; poi estendi la formula di R fino alla riga {T.lastRow}.
+        {' '}Per incollare: «Copia tabella», poi nel Reporting seleziona CapEx!S{T.firstRow} e incolla; infine estendi la
+        formula di R fino alla riga {T.lastRow}. Dall’Excel esportato: copia S{T.firstRow}:AJ{T.lastRow} e usa Incolla speciale › Formule.
         {T.shifted && <> Ci sono commesse FV nuove: le righe sotto i blocchi FV scendono, ricontrolla i range fissi dei controlli.</>}
       </p>
     </section>
+  );
+}
+
+// CapEx on screen: the same table as CapEx!R{header}:AJ… in the Reporting (same
+// columns, same headers, same rows, nothing in between), so what you see is what gets
+// pasted. Row numbers, status dots and column letters are drawn by CSS
+// pseudo-elements, which a copy never picks up; notes and last month's value show on
+// hover and in the list of rows to review.
+const CX_STATUS_LABEL = { auto: 'ok', flag: 'da rivedere', anomaly: 'anomalia' };
+
+function CapexTable({ C, rows }) {
+  const prevLabel = C.columns.find(c => c.key === 'prev')?.label || 'AI mese prec.';
+  const tip = (r) => {
+    const f = r.fields;
+    return [
+      `Riga ${r.xl.row} · ${CX_STATUS_LABEL[r.status]}`,
+      r.reason || r.matchNote || null,
+      `${prevLabel}: ${fmtEUR(cxNum(f.prev))} € → nuovo: ${fmtEUR(cxNum(f.importo))} € (Δ ${fmtEUR(cxNum(f.delta))})`,
+    ].filter(Boolean).join('\n');
+  };
+  const cell = (r, k) => {
+    const v = r.fields[k];
+    if (v === null || v === undefined || v === '') return '';
+    return typeof v === 'number' && CX_NUMERIC.has(k) ? fmtCapexNum(v) : String(v);
+  };
+  return (
+    <section className="table-wrap rep-wrap" aria-label="Tabella CapEx come nel Consolidated Reporting">
+      <table className="rep-table">
+        <thead>
+          <tr>
+            {CX_KEYS.map((k, i) => (
+              <th key={k} data-col={CX_COLS[i]} data-row={i === 0 ? C.xl.headerRow : undefined}
+                className={CX_NUMERIC.has(k) ? 'col-numeric' : ''}>{CX_HEAD[i]}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(r => (
+            <tr key={r.key} className={`row-${r.status}`} title={tip(r)}>
+              {CX_KEYS.map((k, i) => (
+                <td key={k} data-row={i === 0 ? r.xl.row : undefined} data-status={i === 0 ? r.status : undefined}
+                  className={CX_NUMERIC.has(k) ? 'col-numeric mono' : 'mono'}>{cell(r, k)}</td>
+              ))}
+            </tr>
+          ))}
+          {rows.length === 0 && (
+            <tr><td colSpan={CX_KEYS.length} className="empty-filter">Nessuna riga in questa categoria.</td></tr>
+          )}
+        </tbody>
+      </table>
+    </section>
+  );
+}
+
+// The rows that need a look, with their notes: the same list as the "Da rivedere"
+// sheet of the Excel export.
+function CapexReview({ C }) {
+  const items = C.results.filter(r => r.status !== 'auto');
+  if (!items.length) return null;
+  const nFlag = items.filter(r => r.status === 'flag').length, nAnom = items.length - nFlag;
+  const prevLabel = C.columns.find(c => c.key === 'prev')?.label || 'AI mese prec.';
+  const parts = [
+    nFlag ? `${nFlag} ${nFlag === 1 ? 'riga' : 'righe'} da rivedere` : null,
+    nAnom ? `${nAnom} ${nAnom === 1 ? 'anomalia' : 'anomalie'}` : null,
+  ].filter(Boolean).join(', ');
+  return (
+    <details className="cx-review" open>
+      <summary><span className="cx-review-title">Da rivedere: {parts}</span><span className="cx-review-sub">le stesse note del foglio “Da rivedere” dell’Excel</span></summary>
+      <div className="cx-review-list">
+        {items.map(r => (
+          <div key={r.key} className={`cx-review-item status-${r.status}`}>
+            <div className="cx-review-head">
+              <span className="mono cx-review-row">riga {r.xl.row}</span>
+              <span className="mono cx-review-pid">{r.fields.projectId || '(riga manuale)'}</span>
+              <StatusPill status={r.status} />
+              <span className="mono cx-review-amt" title={`${prevLabel} → nuovo`}>
+                {fmtEUR(cxNum(r.fields.prev))} → {fmtEUR(cxNum(r.fields.importo))} €
+              </span>
+            </div>
+            <p className="cx-review-note">{r.reason}</p>
+          </div>
+        ))}
+      </div>
+    </details>
   );
 }
 
@@ -2266,16 +2390,18 @@ export default function App() {
   const [output, setOutput] = useState(null);
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState(null); // null | 'auto' | 'flag' | 'anomaly'
+  const [copyState, setCopyState] = useState(null); // CapEx: null | {ok} | {ok: false, text}
+  const copyAreaRef = useRef(null);
 
   const modeConfig = MODES.find(m => m.id === mode);
 
   useEffect(() => {
-    setFiles({}); setOutput(null); setError(null); setFilter(null);
+    setFiles({}); setOutput(null); setError(null); setFilter(null); setCopyState(null);
   }, [mode]);
 
   const setFile = (slot) => (file) => {
     setFiles(prev => ({ ...prev, [slot]: file }));
-    setOutput(null); setError(null); setFilter(null);
+    setOutput(null); setError(null); setFilter(null); setCopyState(null);
   };
   const clearFile = (slot) => () => {
     setFiles(prev => { const next = { ...prev }; delete next[slot]; return next; });
@@ -2288,7 +2414,7 @@ export default function App() {
   }, [mode, files]);
 
   const handleProcess = useCallback(async () => {
-    setProcessing(true); setError(null); setOutput(null); setFilter(null);
+    setProcessing(true); setError(null); setOutput(null); setFilter(null); setCopyState(null);
     try {
       let result;
       if (mode === 'capex') {
@@ -2361,6 +2487,22 @@ export default function App() {
       setError(`Esportazione CSV non riuscita: ${e.message}`);
     }
   };
+
+  // CapEx: the table goes to the clipboard ready to paste at CapEx!S{first}. Called
+  // straight from the click, as the clipboard requires; where the browser refuses,
+  // the same text is shown selected for a manual Ctrl+C.
+  const handleCopyCapex = () => {
+    if (!output) return;
+    const text = capexClipboardText(output);
+    const write = navigator.clipboard?.writeText ? navigator.clipboard.writeText(text) : Promise.reject(new Error('no clipboard'));
+    write.then(() => setCopyState({ ok: true }), () => setCopyState({ ok: false, text }));
+  };
+  useEffect(() => {
+    if (copyState && !copyState.ok && copyAreaRef.current) {
+      copyAreaRef.current.focus();
+      copyAreaRef.current.select();
+    }
+  }, [copyState]);
 
   const handleExportXlsx = async () => {
     if (!output) return;
@@ -2506,17 +2648,54 @@ export default function App() {
               )}
               <div className="summary-spacer" />
               {mode === 'capex' && output.totals && (
-                <button className="export-btn export-primary" onClick={handleExportXlsx}>
-                  <FileSpreadsheet size={14} /> Esporta Excel
-                </button>
+                <>
+                  <button className="export-btn export-primary" onClick={handleCopyCapex}
+                    title={`Copia S${output.totals.firstRow}:AJ${output.totals.lastRow}, da incollare in CapEx!S${output.totals.firstRow}`}>
+                    <ClipboardCopy size={14} /> Copia tabella
+                  </button>
+                  <button className="export-btn" onClick={handleExportXlsx}>
+                    <FileSpreadsheet size={14} /> Esporta Excel
+                  </button>
+                </>
               )}
               <button className="export-btn" onClick={handleExport}>
                 <Download size={14} /> Esporta CSV
               </button>
             </section>
 
+            {mode === 'capex' && output.totals && copyState && (copyState.ok ? (
+              <div className="copy-box" role="status">
+                <ClipboardCheck size={16} />
+                <span>
+                  Copiate le righe {output.totals.firstRow}–{output.totals.lastRow}, colonne S:AJ. Nel Reporting, foglio CapEx,
+                  seleziona <b>S{output.totals.firstRow}</b> e incolla (Ctrl+V). Poi estendi la formula di R fino alla riga {output.totals.lastRow}.
+                </span>
+                <button className="copy-box-close" onClick={() => setCopyState(null)} aria-label="Chiudi"><X size={13} /></button>
+              </div>
+            ) : (
+              <div className="copy-box copy-box-manual" role="status">
+                <span>
+                  Il browser non permette la copia automatica qui. Il testo qui sotto è già selezionato: premi Ctrl+C (Cmd+C su Mac),
+                  poi nel Reporting seleziona CapEx!S{output.totals.firstRow} e incolla.
+                </span>
+                <textarea ref={copyAreaRef} readOnly value={copyState.text} rows={4} aria-label="Tabella da copiare" />
+                <button className="copy-box-close" onClick={() => setCopyState(null)} aria-label="Chiudi"><X size={13} /></button>
+              </div>
+            ))}
+
             {mode === 'capex' && output.totals && <CapexChecks C={output} />}
 
+            {mode === 'capex' && output.totals ? (
+              <>
+                <CapexReview C={output} />
+                {filter && (
+                  <p className="filter-note">
+                    Filtro attivo: vedi {visibleResults.length} righe su {output.results.length}. «Copia tabella» e le esportazioni prendono sempre tutte le righe.
+                  </p>
+                )}
+                <CapexTable C={output} rows={visibleResults} />
+              </>
+            ) : (
             <section className="table-wrap">
               <table>
                 <thead>
@@ -2552,6 +2731,7 @@ export default function App() {
                 </tbody>
               </table>
             </section>
+            )}
           </>
         )}
 
@@ -2890,6 +3070,77 @@ td.col-note { white-space: normal; min-width: 380px; max-width: 560px; color: va
 ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 5px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--mute); }
 
+/* ---- CapEx: the Reporting's own table, rows to review, copy ---- */
+.rep-wrap { padding-left: 64px; }
+.rep-table thead th {
+  z-index: 2; text-transform: none; letter-spacing: 0; font-size: 11.5px; color: var(--paper-dim);
+  vertical-align: bottom;
+}
+.rep-table thead th::before {
+  content: attr(data-col); display: block; margin-bottom: 3px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 500; color: var(--wire);
+}
+.rep-table thead th.col-numeric::before { text-align: right; }
+.rep-table thead th[data-row]::after {
+  content: attr(data-row); position: absolute; top: 0; bottom: -1px; right: 100%; width: 64px;
+  display: flex; align-items: flex-end; justify-content: flex-end; box-sizing: border-box; padding: 0 12px 9px 0;
+  background: var(--panel-raised); border-bottom: 1px solid var(--line);
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 400; color: var(--mute);
+}
+.rep-table tbody td:first-child { position: relative; }
+.rep-table tbody td[data-row]::before {
+  content: attr(data-row); position: absolute; right: calc(100% + 12px); top: 50%; transform: translateY(-50%);
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--mute);
+}
+.rep-table tbody td[data-status]::after {
+  content: ''; position: absolute; right: calc(100% + 46px); top: 50%; width: 7px; height: 7px; margin-top: -3.5px;
+  border-radius: 50%; background: var(--verified);
+}
+.rep-table tbody td[data-status="flag"]::after { background: var(--signal); }
+.rep-table tbody td[data-status="anomaly"]::after { background: var(--alert); }
+.rep-table tbody td { color: var(--paper); }
+.rep-table tbody td:empty { min-width: 24px; }
+/* long client names and descriptions are cut on screen only: a copy still takes the whole text */
+.rep-table tbody td:nth-child(4), .rep-table tbody td:nth-child(9), .rep-table tbody td:nth-child(19) {
+  max-width: 300px; overflow: hidden; text-overflow: ellipsis;
+}
+
+.cx-review { border: 1px solid var(--line); border-radius: 10px; margin-bottom: 14px; background: var(--panel); }
+.cx-review summary {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; cursor: pointer;
+  padding: 11px 16px; list-style-position: inside;
+}
+.cx-review-title { font-weight: 600; font-size: 12.5px; color: var(--paper); }
+.cx-review-sub { font-size: 11px; color: var(--mute); }
+.cx-review-list { max-height: 300px; overflow: auto; border-top: 1px solid var(--line); }
+.cx-review-item { padding: 9px 16px; border-bottom: 1px solid var(--line); border-left: 3px solid var(--signal); }
+.cx-review-item:last-child { border-bottom: none; }
+.cx-review-item.status-anomaly { border-left-color: var(--alert); }
+.cx-review-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; font-size: 12px; }
+.cx-review-row { color: var(--mute); min-width: 64px; }
+.cx-review-pid { color: var(--paper); }
+.cx-review-amt { margin-left: auto; color: var(--paper-dim); font-size: 11.5px; }
+.cx-review-note { margin: 5px 0 0; font-size: 12px; line-height: 1.5; color: var(--paper-dim); max-width: 110ch; }
+
+.copy-box {
+  display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap; position: relative;
+  background: var(--verified-dim); border: 1px solid var(--verified); color: var(--paper);
+  border-radius: 8px; padding: 11px 40px 11px 14px; margin-bottom: 14px; font-size: 12.5px; line-height: 1.55;
+}
+.copy-box svg { flex-shrink: 0; margin-top: 2px; color: var(--verified); }
+.copy-box > span { flex: 1; min-width: 0; }
+.copy-box-manual { background: var(--signal-dim); border-color: var(--signal); }
+.copy-box textarea {
+  flex-basis: 100%; min-width: 0; resize: vertical; border-radius: 6px; border: 1px solid var(--line);
+  background: var(--panel-raised); color: var(--paper); font-family: 'IBM Plex Mono', monospace; font-size: 11px; padding: 8px;
+}
+.copy-box-close {
+  position: absolute; top: 8px; right: 8px; display: inline-flex; padding: 4px; border-radius: 6px;
+  background: none; border: none; color: var(--mute); cursor: pointer;
+}
+.copy-box-close:hover { color: var(--paper); }
+.filter-note { margin: 0 0 10px; font-size: 11.5px; color: var(--mute); }
+
 /* ---- Narrow screens: rail across the top, one column ---- */
 @media (max-width: 860px) {
   .upload-grid-3 { grid-template-columns: 1fr 1fr; }
@@ -2924,6 +3175,7 @@ td.col-note { white-space: normal; min-width: 380px; max-width: 560px; color: va
   .process-btn { align-self: stretch; justify-content: center; }
   .summary-spacer { flex-basis: 100%; height: 0; }
   .table-wrap { max-height: 70vh; }
+  .cx-review-amt { margin-left: 0; }
   .cx-row { grid-template-columns: 1fr 1fr; gap: 4px 14px; }
   .cx-head { grid-template-columns: 1fr; }
   .cx-head .cx-n, .cx-head .cx-to { display: none; }
