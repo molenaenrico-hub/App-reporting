@@ -1,7 +1,7 @@
 {
  "_meta": {
   "descrizione": "Database dell app di riclassifica CiviSmart. Struttura identica a quella usata dall app: puo essere reimportato cosi com e.",
-  "esportato": "2026-10-07",
+  "esportato": "2026-11-10",
   "tabelle": {
    "regionToBU": {
     "voci": 20,
@@ -12,11 +12,11 @@
     "contenuto": "Testo grezzo del comune → nome pulito (Title Case)"
    },
    "comuneToBU": {
-    "voci": 634,
+    "voci": 669,
     "contenuto": "Nome comune/cliente → Business Unit"
    },
    "cvsBuProjectDB": {
-    "voci": 548,
+    "voci": 550,
     "contenuto": "Anagrafica CVS BU per Project ID: seller, comune, BU, business stream I/II, project name"
    },
    "nonEpcComuni": {
@@ -28,7 +28,7 @@
     "contenuto": "Legenda SGP: testo voce → codice di riclassificazione gestionale"
    },
    "bdvAccounts": {
-    "voci": 496,
+    "voci": 501,
     "contenuto": "Conti del BDV: codice → nome e quadro"
    },
    "cvsBuWhitelist": {
@@ -36,7 +36,7 @@
     "contenuto": "Activity code che rientrano in CVS BU (le altre famiglie vanno a CapEx)"
    },
    "bdvFull": {
-    "voci": 496,
+    "voci": 501,
     "contenuto": "Riclassificazione gestionale completa per conto (Società, Quadro, Altro, Ricla MG esteso, Cluster II, Conto COGE I/II livello)"
    },
    "projectNames": {
@@ -48,7 +48,7 @@
     "contenuto": "Comune → Organic / M&A ongoing, seller e BU"
    },
    "capexProjectDB": {
-    "voci": 264,
+    "voci": 283,
     "contenuto": "Anagrafica CapEx per Project ID: tipo servizio, tipo contratto, Società, % ATI, gruppo FV/CVS/SPV"
    },
    "dgRevenueClasses": {
@@ -951,7 +951,42 @@
   "Vinci": "Centre",
   "Volturino": "South",
   "Zollino": "South",
-  "Zumpano": "South"
+  "Zumpano": "South",
+  "San Cesario di Lecce (Pj Elena)": "South",
+  "Chioggia 2020": "North East",
+  "Soles Tech Soc Cop": "Centre",
+  "Cifolelli Edilizia Srl": "Centre",
+  "Ellepi Costruzioni Srl": "North West",
+  "Csg Illuminazione Srl": "South",
+  "Gambara Asfalti Spa": "North West",
+  "Pa.ma Snc di Pinchetti Pier Paolo e C.": "North West",
+  "Citta' Metropolitana di Milano": "North West",
+  "Condominio Mercadante Cgz": "South",
+  "E-Distribuzione Spa": "North West",
+  "F.m. Srl": "South",
+  "Bonnin Auto Snc": "North West",
+  "Mpm S.r.l.": "North West",
+  "Batelco Srl": "North West",
+  "Cdlt Cgil Potenza": "South",
+  "Citta' Sant'angelo - Uff_efatturapa": "Centre",
+  "In Cucina Arredamenti Srl": "North West",
+  "Cassano Efficiency S.r.l.": "Centre",
+  "Stornara": "South",
+  "Lima Srl": "North West",
+  "Due Zeta Snc": "North West",
+  "Manzelli Srl": "South",
+  "Natale Sandionigi Srl Costruzioni Edili": "North West",
+  "Diamond Smart City Srl": "North West",
+  "Gargano Esco Srl": "South",
+  "Buonabitacolo": "South",
+  "Chioggia BUS": "North East",
+  "Falcone": "South",
+  "Gavignano": "Centre",
+  "Lacco Ameno": "South",
+  "Nettuno": "Centre",
+  "Ortona dei Marsi": "Centre",
+  "Palermo": "South",
+  "Sestri Levante": "North West"
  },
  "cvsBuProjectDB": {
   "PPP-IPU-D615-01": {
@@ -5337,6 +5372,22 @@
    "streamI": "Extra Revenues",
    "streamII": "Extra Revenues",
    "projectName": "Comune di Filiano : FILIANO EXTRA LAVORI CIG: 9061900472"
+  },
+  "PPP-IPU-L357-01": {
+   "seller": "Organic",
+   "comune": "Trecchina",
+   "bu": "South",
+   "streamI": "Public Streetlighting",
+   "streamII": "PPP",
+   "projectName": "COMUNE DI TRECCHINA : TRECCHINA ILLUMINAZIONE PUBBLICA"
+  },
+  "EPC-IPU-D643-01": {
+   "seller": "Organic",
+   "comune": "Gargano Esco Srl",
+   "bu": "South",
+   "streamI": "Extra Revenues",
+   "streamII": "Extra Revenues",
+   "projectName": "GARGANO ESCO SRL : - GARGANO ESCO SRL LAVORI SPOT"
   }
  },
  "nonEpcComuni": [
@@ -7545,7 +7596,7 @@
   },
   "GST-005": {
    "name": "Cost of Goods Sold (Gest.)",
-   "quadro": "CE"
+   "quadro": "SP"
   },
   "GST-008": {
    "name": "Inventory In Transit (Gest.)",
@@ -7557,11 +7608,11 @@
   },
   "GST-012": {
    "name": " Income Commesse (Gest.)",
-   "quadro": "CE"
+   "quadro": "SP"
   },
   "GST-013": {
    "name": "Expense Commesse (Gest.)",
-   "quadro": "CE"
+   "quadro": "SP"
   },
   "STD-005": {
    "name": "Accounts Payable",
@@ -7834,6 +7885,26 @@
   "881201": {
    "name": "Perdite su Crediti",
    "quadro": "CE"
+  },
+  "100507": {
+   "name": "Immobiliazioni Materiali In Corso - FV Borgorose 2",
+   "quadro": "SP"
+  },
+  "100511": {
+   "name": "Immobiliazioni Materiali In Corso - FV Ugento",
+   "quadro": "SP"
+  },
+  "180343": {
+   "name": "Banca Unicredit c/c 3211",
+   "quadro": "SP"
+  },
+  "180357": {
+   "name": "Banca Unicredit c/c 3237",
+   "quadro": "SP"
+  },
+  "STD-011": {
+   "name": "Purchases Returned Not Credited",
+   "quadro": "SP"
   }
  },
  "cvsBuWhitelist": [
@@ -12077,9 +12148,9 @@
   },
   "GST-005": {
    "societa": "CVS",
-   "quadro": "CE",
-   "altro": "C",
-   "ricla": "Costi Diretti",
+   "quadro": "SP",
+   "altro": null,
+   "ricla": "Other Credit",
    "nome": "Cost of Goods Sold (Gest.)",
    "clusterII": null,
    "contoI": "TBD",
@@ -12107,9 +12178,9 @@
   },
   "GST-012": {
    "societa": "CVS",
-   "quadro": "CE",
-   "altro": "C",
-   "ricla": "Canone",
+   "quadro": "SP",
+   "altro": null,
+   "ricla": "Other Credit",
    "nome": " Income Commesse (Gest.)",
    "clusterII": null,
    "contoI": "TBD",
@@ -12117,9 +12188,9 @@
   },
   "GST-013": {
    "societa": "CVS",
-   "quadro": "CE",
-   "altro": "C",
-   "ricla": "Costi Diretti",
+   "quadro": "SP",
+   "altro": null,
+   "ricla": "Other Credit",
    "nome": "Expense Commesse (Gest.)",
    "clusterII": null,
    "contoI": "TBD",
@@ -12129,7 +12200,7 @@
    "societa": "CVS",
    "quadro": "SP",
    "altro": null,
-   "ricla": "Trade Payables",
+   "ricla": "Other Liabilities",
    "nome": "Accounts Payable",
    "clusterII": null,
    "contoI": "TBD",
@@ -12718,7 +12789,7 @@
   "700401": {
    "societa": "CVS",
    "quadro": "CE",
-   "altro": null,
+   "altro": "C",
    "ricla": "Overheads",
    "nome": "Servizi Di Lavoro In Somministrazione",
    "clusterII": null,
@@ -12728,7 +12799,7 @@
   "840201": {
    "societa": "CVS",
    "quadro": "CE",
-   "altro": null,
+   "altro": "C",
    "ricla": "Overheads",
    "nome": "Oneri Contrattuali",
    "clusterII": null,
@@ -12738,7 +12809,7 @@
   "68/05/501": {
    "societa": "CVS",
    "quadro": "CE",
-   "altro": null,
+   "altro": "C",
    "ricla": "Overheads",
    "nome": "SPESE PARTECIPAZIONE CONSORZIO",
    "clusterII": null,
@@ -12804,6 +12875,56 @@
    "clusterII": null,
    "contoI": "Oneri Diversi Di Gestione",
    "contoII": "B14 - oneri diversi di gestione"
+  },
+  "100507": {
+   "societa": "CVS",
+   "quadro": "SP",
+   "altro": "FV",
+   "ricla": "Tangible Assets",
+   "nome": "Immobiliazioni Materiali In Corso - FV Borgorose 2",
+   "clusterII": "Fotovoltaico in corso",
+   "contoI": "TBD",
+   "contoII": "TBD"
+  },
+  "100511": {
+   "societa": "CVS",
+   "quadro": "SP",
+   "altro": "FV",
+   "ricla": "Tangible Assets",
+   "nome": "Immobiliazioni Materiali In Corso - FV Ugento",
+   "clusterII": "Fotovoltaico in corso",
+   "contoI": "TBD",
+   "contoII": "TBD"
+  },
+  "180343": {
+   "societa": "CVS",
+   "quadro": "SP",
+   "altro": null,
+   "ricla": "Cash & Cash Equivalent",
+   "nome": "Banca Unicredit c/c 3211",
+   "clusterII": null,
+   "contoI": "TBD",
+   "contoII": "TBD"
+  },
+  "180357": {
+   "societa": "CVS",
+   "quadro": "SP",
+   "altro": null,
+   "ricla": "Cash & Cash Equivalent",
+   "nome": "Banca Unicredit c/c 3237",
+   "clusterII": null,
+   "contoI": "TBD",
+   "contoII": "CIV.1 - depositi bancari e postali"
+  },
+  "STD-011": {
+   "societa": "CVS",
+   "quadro": "SP",
+   "altro": null,
+   "ricla": "Other Credit",
+   "nome": "Purchases Returned Not Credited",
+   "clusterII": null,
+   "contoI": "TBD",
+   "contoII": "TBD"
   }
  },
  "projectNames": {
@@ -16037,133 +16158,133 @@
   "SEC-PHV-A515-01": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "group": "FV",
    "pctATI": 1
   },
   "SEC-PHV-A515-02": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "group": "FV",
    "pctATI": 1
   },
   "SEC-PHV-A515-03": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "group": "FV",
    "pctATI": 1
   },
   "SEC-PHV-B008-01": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "group": "FV",
    "pctATI": 1
   },
   "SEC-PHV-B506-05": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "group": "FV",
    "pctATI": 1
   },
   "SEC-PHV-B792-01": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "group": "FV",
    "pctATI": 1
   },
   "SEC-PHV-C844-01": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "group": "FV",
    "pctATI": 1
   },
   "SEC-PHV-C978-01": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "group": "FV",
    "pctATI": 1
   },
   "SEC-PHV-C978-02": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "group": "FV",
    "pctATI": 1
   },
   "SEC-PHV-C999-01": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "group": "FV",
    "pctATI": 1
   },
   "SEC-PHV-E058-01": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "group": "FV",
    "pctATI": 1
   },
   "SEC-PHV-F690-01": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "group": "FV",
    "pctATI": 1
   },
   "SEC-PHV-F690-02": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "group": "FV",
    "pctATI": 1
   },
   "SEC-PHV-F690-03": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "group": "FV",
    "pctATI": 1
   },
   "SEC-PHV-I553-02": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "group": "FV",
    "pctATI": 1
   },
   "SEC-PHV-L074-02": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "group": "FV",
    "pctATI": 1
   },
   "SEC-PHV-H166-01": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "group": "FV",
    "pctATI": 1
   },
   "SEC-PHV-H166-02": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "group": "FV",
    "pctATI": 1
   },
   "SEC-PHV-L419-01": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "group": "FV",
    "pctATI": 1
   },
@@ -16478,7 +16599,7 @@
   "PPP-IPU-E569-01": {
    "service": "Public Streetlighting",
    "contract": "PPP",
-   "societa": "Ottima"
+   "societa": "Civismart"
   },
   "PPP-IPU-E716-01": {
    "service": "Public Streetlighting",
@@ -16586,7 +16707,7 @@
   "PPP-IPU-F826-01": {
    "service": "Public Streetlighting",
    "contract": "PPP",
-   "societa": "CMV II",
+   "societa": "CiviSmart S.p.A.",
    "group": "SPV",
    "pctATI": 1
   },
@@ -16642,7 +16763,7 @@
   "PPP-IPU-M269-01": {
    "service": "Public Streetlighting",
    "contract": "PPP",
-   "societa": "Civismart"
+   "societa": "CiviSmart S.p.A."
   },
   "PPP-IPU-G376-01": {
    "service": "Public Streetlighting",
@@ -16654,7 +16775,7 @@
   "PPP-IPU-G426-01": {
    "service": "Public Streetlighting",
    "contract": "PPP",
-   "societa": "Selettra"
+   "societa": "Civismart"
   },
   "PPP-EEE-G426-03": {
    "service": "Smart Buildings",
@@ -16729,7 +16850,7 @@
   "PPP-IPU-G751-01": {
    "service": "Public Streetlighting",
    "contract": "PPP",
-   "societa": "Selettra"
+   "societa": "Civismart"
   },
   "PPP-IPU-G867-01": {
    "service": "Public Streetlighting",
@@ -17000,7 +17121,7 @@
   "PPP-IPU-L656-01": {
    "service": "Public Streetlighting",
    "contract": "PPP",
-   "societa": "Selettra"
+   "societa": "CiviSmart S.p.A."
   },
   "PPP-IPU-L835-01": {
    "service": "Public Streetlighting",
@@ -17019,7 +17140,7 @@
   "PPP-IPU-M060-01": {
    "service": "Public Streetlighting",
    "contract": "PPP",
-   "societa": "Civismart"
+   "societa": "CiviSmart S.p.A."
   },
   "PPP-IPU-B180-01": {
    "service": "Public Streetlighting",
@@ -17059,56 +17180,56 @@
   "PPP-IPU-L074-01": {
    "service": "Public Streetlighting",
    "contract": "PPP",
-   "societa": "Taviano",
+   "societa": "CiviSmart S.p.A.",
    "group": "SPV",
    "pctATI": 1
   },
   "PPP-IPU-F229-01": {
    "service": "Public Streetlighting",
    "contract": "PPP",
-   "societa": "CMV I",
+   "societa": "CiviSmart S.p.A.",
    "group": "SPV",
    "pctATI": 1
   },
   "PPP-IPU-F241-01": {
    "service": "Public Streetlighting",
    "contract": "PPP",
-   "societa": "CMV I",
+   "societa": "CiviSmart S.p.A.",
    "group": "SPV",
    "pctATI": 1
   },
   "PPP-IPU-F874-01": {
    "service": "Public Streetlighting",
    "contract": "PPP",
-   "societa": "Nerviano",
+   "societa": "CiviSmart S.p.A.",
    "group": "SPV",
    "pctATI": 1
   },
   "PPP-IPU-I805-01": {
    "service": "Public Streetlighting",
    "contract": "PPP",
-   "societa": "Solofra",
+   "societa": "CiviSmart S.p.A.",
    "group": "SPV",
    "pctATI": 1
   },
   "PPP-IPU-I965-01": {
    "service": "Public Streetlighting",
    "contract": "PPP",
-   "societa": "CMV I",
+   "societa": "CiviSmart S.p.A.",
    "group": "SPV",
    "pctATI": 1
   },
   "PPP-IPU-M428-02": {
    "service": "Public Streetlighting",
    "contract": "PPP",
-   "societa": "Presicce",
+   "societa": "CiviSmart S.p.A.",
    "group": "SPV",
    "pctATI": 1
   },
   "PPP-IPU-M428-01": {
    "service": "Public Streetlighting",
    "contract": "PPP",
-   "societa": "Presicce"
+   "societa": "CiviSmart S.p.A."
   },
   "PPP-IPU-A208-01": {
    "service": "Public Streetlighting",
@@ -17279,21 +17400,21 @@
   "PPP-IPU-H090-01": {
    "service": "Public Streetlighting",
    "contract": "PPP",
-   "societa": "Pulsano",
+   "societa": "CiviSmart S.p.A.",
    "group": "SPV",
    "pctATI": 1
   },
   "PPP-IPU-D184-01": {
    "service": "Public Streetlighting",
    "contract": "PPP",
-   "societa": "Crosia",
+   "societa": "CiviSmart S.p.A.",
    "group": "SPV",
    "pctATI": 1
   },
   "PPP-EEE-B294-03": {
    "service": "Smart Buildings",
    "contract": "Smart Buildings",
-   "societa": "Bussi",
+   "societa": "CiviSmart S.p.A.",
    "group": "SPV",
    "pctATI": 1
   },
@@ -17440,14 +17561,14 @@
   "PPP-IPU-I895-01": {
    "service": "Public Streetlighting",
    "contract": "PPP",
-   "societa": "Spezzano Albanese",
+   "societa": "CiviSmart S.p.A.",
    "group": "SPV",
    "pctATI": 1
   },
   "PPP-IPU-H823-01": {
    "service": "Public Streetlighting",
    "contract": "PPP",
-   "societa": "CMV II",
+   "societa": "CiviSmart S.p.A.",
    "group": "SPV",
    "pctATI": 1
   },
@@ -17461,14 +17582,14 @@
   "PPP-IPU-D415-01": {
    "service": "Public Streetlighting",
    "contract": "PPP",
-   "societa": "CMV II",
+   "societa": "CiviSmart S.p.A.",
    "group": "SPV",
    "pctATI": 1
   },
   "PPP-IPU-C388-01": {
    "service": "Public Streetlighting",
    "contract": "PPP",
-   "societa": "CMV II",
+   "societa": "CiviSmart S.p.A.",
    "group": "SPV",
    "pctATI": 1
   },
@@ -17580,7 +17701,7 @@
   "CL3-IPU-B754-01": {
    "service": "Public Streetlighting",
    "contract": "C-Luce 3",
-   "societa": "Civismart",
+   "societa": "CiviSmart S.p.A.",
    "group": "CVS",
    "pctATI": 1
   },
@@ -17594,49 +17715,49 @@
   "SEC-PHV-I457-01": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "pctATI": 1,
    "group": "FV"
   },
   "SEC-PHV-F415-01": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "pctATI": 1,
    "group": "FV"
   },
   "SEC-PHV-F158-02": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "pctATI": 1,
    "group": "FV"
   },
   "SEC-PHV-D593-01": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "pctATI": 1,
    "group": "FV"
   },
   "SEC-PHV-H882-01": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "pctATI": 1,
    "group": "FV"
   },
   "SEC-PHV-D593-09": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "pctATI": 1,
    "group": "FV"
   },
   "SEC-PHV-M269-01": {
    "service": "Photovoltaic",
    "contract": "Photovoltaic",
-   "societa": "Civismart",
+   "societa": "Sinergia",
    "pctATI": 1,
    "group": "FV"
   },
@@ -17657,7 +17778,7 @@
   "PPP-IPU-L736-01": {
    "service": "Public Streetlighting",
    "contract": "PPP",
-   "societa": "Civismart",
+   "societa": "CiviSmart S.p.A.",
    "pctATI": 1,
    "group": "CVS"
   },
@@ -17678,7 +17799,7 @@
   "PPP-IPU-C638-02": {
    "service": "Public Streetlighting",
    "contract": "PPP",
-   "societa": "Civismart",
+   "societa": "CiviSmart S.p.A.",
    "pctATI": 1,
    "group": "CVS"
   },
@@ -17713,14 +17834,14 @@
   "SEC-CIM-A519-01": {
    "service": "Cemetary Services",
    "contract": "Cemetary Services",
-   "societa": "Civismart",
+   "societa": "CiviSmart S.p.A.",
    "pctATI": 1,
    "group": "CVS"
   },
   "SEC-CIM-D593-01": {
    "service": "Cemetary Services",
    "contract": "Cemetary Services",
-   "societa": "Civismart",
+   "societa": "CiviSmart S.p.A.",
    "pctATI": 1,
    "group": "CVS"
   },
@@ -17734,7 +17855,7 @@
   "CL4-IPU-D643-01": {
    "service": "Public Streetlighting",
    "contract": "C-Luce 4",
-   "societa": "Civismart",
+   "societa": "CiviSmart S.p.A.",
    "pctATI": 1,
    "group": "CVS"
   },
@@ -17748,7 +17869,7 @@
   "PPP-IPU-L285-01": {
    "service": "Public Streetlighting",
    "contract": "PPP",
-   "societa": "Civismart",
+   "societa": "CiviSmart S.p.A.",
    "pctATI": 1,
    "group": "CVS"
   },
@@ -17790,7 +17911,7 @@
   "CL3-IPU-I608-01": {
    "service": "Public Streetlighting",
    "contract": "C-Luce 3",
-   "societa": "Civismart",
+   "societa": "CiviSmart S.p.A.",
    "pctATI": 1,
    "group": "CVS"
   },
@@ -17863,6 +17984,139 @@
    "societa": "Civismart",
    "pctATI": 1,
    "group": "CVS"
+  },
+  "SEC-PHV-B008-02": {
+   "service": "Photovoltaic",
+   "contract": "Photovoltaic",
+   "societa": "Civismart",
+   "group": "FV",
+   "pctATI": 1
+  },
+  "SEC-PHV-L484-02": {
+   "service": "Photovoltaic",
+   "contract": "Photovoltaic",
+   "societa": "Civismart",
+   "group": "FV",
+   "pctATI": 1
+  },
+  "PPP-IPU-B872-01": {
+   "service": "Public Streetlighting",
+   "contract": "PPP",
+   "societa": "CiviSmart S.p.A.",
+   "group": "CVS",
+   "pctATI": 1
+  },
+  "PPP-IPU-D464-01": {
+   "service": "Public Streetlighting",
+   "contract": "PPP",
+   "societa": "CiviSmart S.p.A.",
+   "group": "CVS",
+   "pctATI": 1
+  },
+  "PPP-IPU-D474-01": {
+   "service": "Public Streetlighting",
+   "contract": "PPP",
+   "societa": "CiviSmart S.p.A.",
+   "group": "CVS",
+   "pctATI": 1
+  },
+  "PPP-IPU-D945-01": {
+   "service": "Public Streetlighting",
+   "contract": "PPP",
+   "societa": "CiviSmart S.p.A.",
+   "group": "CVS",
+   "pctATI": 1
+  },
+  "PPP-IPU-E396-01": {
+   "service": "Public Streetlighting",
+   "contract": "PPP",
+   "societa": "CiviSmart S.p.A.",
+   "group": "CVS",
+   "pctATI": 1
+  },
+  "PPP-IPU-F880-01": {
+   "service": "Public Streetlighting",
+   "contract": "PPP",
+   "societa": "CiviSmart S.p.A.",
+   "group": "CVS",
+   "pctATI": 1
+  },
+  "PPP-IPU-G142-01": {
+   "service": "Public Streetlighting",
+   "contract": "PPP",
+   "societa": "CiviSmart S.p.A.",
+   "group": "CVS",
+   "pctATI": 1
+  },
+  "PPP-IPU-G273-01": {
+   "service": "Public Streetlighting",
+   "contract": "PPP",
+   "societa": "CiviSmart S.p.A.",
+   "group": "CVS",
+   "pctATI": 1
+  },
+  "PPP-IPU-G514-01": {
+   "service": "Public Streetlighting",
+   "contract": "PPP",
+   "societa": "CiviSmart S.p.A.",
+   "group": "CVS",
+   "pctATI": 1
+  },
+  "PPP-IPU-G590-01": {
+   "service": "Public Streetlighting",
+   "contract": "PPP",
+   "societa": "CiviSmart S.p.A.",
+   "group": "CVS",
+   "pctATI": 1
+  },
+  "PPP-IPU-M367-01": {
+   "service": "Public Streetlighting",
+   "contract": "PPP",
+   "societa": "CiviSmart S.p.A.",
+   "group": "CVS",
+   "pctATI": 1
+  },
+  "PPP-IPU-I693-01": {
+   "service": "Public Streetlighting",
+   "contract": "PPP",
+   "societa": "CiviSmart S.p.A.",
+   "group": "CVS",
+   "pctATI": 1
+  },
+  "AQ1-IPU-M379-01": {
+   "service": "Public Streetlighting",
+   "contract": "C-AQ1",
+   "societa": "CiviSmart S.p.A.",
+   "group": "CVS",
+   "pctATI": 1
+  },
+  "PPP-IPU-L206-01": {
+   "service": "Public Streetlighting",
+   "contract": "PPP",
+   "societa": "CiviSmart S.p.A.",
+   "group": "CVS",
+   "pctATI": 1
+  },
+  "PPP-IPU-E372-01": {
+   "service": "Public Streetlighting",
+   "contract": "PPP",
+   "societa": "CiviSmart S.p.A.",
+   "group": "CVS",
+   "pctATI": 1
+  },
+  "PPP-IPU-I242-01": {
+   "service": "Public Streetlighting",
+   "contract": "PPP",
+   "societa": "CITTÀ METROPOLITANA DI VENEZIA I SMART CITY S.R.L.",
+   "group": "SPV",
+   "pctATI": 1
+  },
+  "PPP-IPU-L269-01": {
+   "service": "Public Streetlighting",
+   "contract": "PPP",
+   "societa": "DIAMOND SMART CITY S.R.L.",
+   "group": "CVS",
+   "pctATI": 1
   }
  },
  "dgRevenueClasses": {
