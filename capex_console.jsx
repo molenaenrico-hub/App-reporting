@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import CAPEX_BASE_SETTEMBRE from './capex_base_settembre_2026.json';
 import {
   Upload, FileSpreadsheet, Check, AlertTriangle, AlertOctagon, Download,
@@ -474,7 +475,6 @@ const CX_COLS = ['R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB', 'AC', 
 const CX_KEYS = ['sino', 'chiave', 'projectId', 'comuneRaw', 'comuneClean', 'bu', 'service', 'contract', 'dettaglio', 'activityCode', 'materiali', 'servizi', 'manodopera', 'oneri', 'totale', 'adj1', 'adj2', 'importo', 'societa'];
 const CX_HEAD = ['Sì/No', 'Chiave', 'Project ID', 'Comune', 'Comune', 'BU', 'Type of service', 'Type of Contract', 'Dettaglio commessa', 'Activity Code', '04 - Materiali', '02 - Servizi', '03 - Manodopera', '01 - Oneri', 'Totale', 'Adj.1', 'Adj.2', 'Capitalizzazione + Costi indiretti', 'Società'];
 const CX_NUMERIC = new Set(['totale', 'adj1', 'adj2', 'importo']);
-const CX_EUR_FORMAT = '#,##0.00';
 
 function cxNum(v) { return typeof v === 'number' && isFinite(v) ? v : 0; }
 // sums are rounded to 6 decimals, the precision the Reporting itself carries
@@ -962,72 +962,153 @@ function cxRowRanges(rows) {
   return parts.join(', ');
 }
 
-/* Excel ready to paste: the same cells as the Reporting (R{header}:AJ…), with the
-   formulas of S and AI written alongside their computed values, plus a "Da
-   rivedere" sheet and a "Controlli" sheet with the totals as formulas. */
-function buildCapexXlsx(C) {
+/* Excel ready to paste: the same cells as the Reporting (R{header}:AJ…) with the look
+   of its CapEx sheet, read off 20261008_Consolidated_Reporting_v2: Arial 11, dark blue
+   headers (light blue on V:Y, green on Adj.1/Adj.2), the Pagani row grey, FV diretti
+   light yellow, FV indiretti light blue, capitalizzazioni unfilled, the sheet's number
+   formats and column widths, filter on the header, no gridlines. Colors are plain RGB
+   taken from the Reporting's theme, so they look the same in the export and once
+   pasted. The formulas of S and AI are written alongside their computed values; a
+   "Da rivedere" sheet and a "Controlli" sheet with the totals as formulas follow.
+   SheetJS, used everywhere else for reading, cannot write cell formatting: ExcelJS does. */
+const XL_FONT = { name: 'Arial', size: 11, family: 2 };
+const XL_NF_INT = '#,##0;\\(#,##0\\);\\-';
+const XL_NF_ACC0 = '_-* #,##0_-;\\-* #,##0_-;_-* "-"??_-;_-@_-';
+const XL_NF_ACC2 = '_-* #,##0.00_-;\\-* #,##0.00_-;_-* "-"??_-;_-@_-';
+const XL_COLOR = {
+  navy: 'FF002060', sky: 'FF83CCEB', green: 'FF3B7D23', yellow: 'FFFFFFCC', blue: 'FFC0E6F5', grey: 'FFD9D9D9',
+  white: 'FFFFFFFF', black: 'FF000000', tab: 'FFC2F1C8',
+  flagFill: 'FFFFEB9C', flagInk: 'FF9C5700', anomalyFill: 'FFFFC7CE', anomalyInk: 'FF9C0006',
+};
+const XL_WIDTH = {
+  R: 18.22, S: 34.22, T: 33.78, U: 42.55, V: 21.44, W: 14.78, X: 23.55, Y: 22.44, Z: 91.55, AA: 47.22,
+  AB: 14.78, AC: 13.22, AD: 18.78, AE: 16.22, AF: 23, AG: 15.66, AH: 19.22, AI: 17.78, AJ: 20.55,
+};
+const XL_TOP_LEFT = { horizontal: 'left', vertical: 'top' };
+
+// The look of one cell of the CapEx table, by block (hdr, m, d, i, c) and column,
+// as the Reporting has it.
+function capexCellLook(kind, col) {
+  const C = XL_COLOR;
+  if (kind === 'hdr') {
+    const fill = ['V', 'W', 'X', 'Y'].includes(col) ? C.sky : ['AG', 'AH'].includes(col) ? C.green : C.navy;
+    const left = ['AB', 'AC', 'AD', 'AE', 'AF'].includes(col);
+    return {
+      fill, color: C.white,
+      nf: col === 'AJ' ? XL_NF_ACC2 : (left || ['AG', 'AH', 'AI'].includes(col)) ? XL_NF_INT : null,
+      align: { horizontal: left ? 'left' : 'center', vertical: 'middle', wrapText: !['R', 'S', 'T'].includes(col) },
+    };
+  }
+  if (col === 'R') return { nf: XL_NF_INT };
+  const BLOCK = {
+    m: { fill: C.grey, topLeft: ['V', 'W', 'Y'], int: ['X', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH'], acc0: ['AI'] },
+    d: { fill: C.yellow, topLeft: ['S', 'V', 'W', 'AA'], int: ['X', 'Y', 'Z', 'AB', 'AC', 'AD', 'AE', 'AG', 'AH'], acc0: ['AF', 'AI'] },
+    i: { fill: C.blue, topLeft: ['V', 'W', 'AA'], int: ['X', 'Y', 'Z', 'AB', 'AC', 'AD', 'AE', 'AF', 'AH'], acc0: ['AI'] },
+    c: { fill: null, topLeft: ['U', 'Z'], top: ['AA'], int: ['S', 'T'], acc2: ['AG', 'AI'] },
+  }[kind] || {};
+  return {
+    fill: BLOCK.fill || null,
+    nf: (BLOCK.int || []).includes(col) ? XL_NF_INT : (BLOCK.acc0 || []).includes(col) ? XL_NF_ACC0
+      : (BLOCK.acc2 || []).includes(col) ? XL_NF_ACC2 : null,
+    align: (BLOCK.topLeft || []).includes(col) ? XL_TOP_LEFT : (BLOCK.top || []).includes(col) ? { vertical: 'top' } : null,
+  };
+}
+
+function xlPut(ws, addr, value, look = {}) {
+  const cell = ws.getCell(addr);
+  if (value !== undefined && value !== null && value !== '') cell.value = value;
+  cell.font = { ...XL_FONT, color: { argb: look.color || XL_COLOR.black }, ...(look.bold ? { bold: true } : {}) };
+  if (look.fill) cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: look.fill }, bgColor: { indexed: 64 } };
+  if (look.nf) cell.numFmt = look.nf;
+  if (look.align) cell.alignment = look.align;
+  return cell;
+}
+
+const XL_HEADER_LOOK = { fill: XL_COLOR.navy, color: XL_COLOR.white, align: { horizontal: 'center', vertical: 'middle', wrapText: true } };
+
+async function buildCapexXlsx(C) {
   const T = C.totals, H = C.xl.headerRow;
-  const ws = {};
+  const wb = new ExcelJS.Workbook();
+  wb.creator = 'Riclassifica CiviSmart';
+  wb.calcProperties.fullCalcOnLoad = true;
+
+  /* --- CapEx: the table, in the same cells and with the same look as the Reporting --- */
+  const ws = wb.addWorksheet('CapEx', {
+    properties: { tabColor: { argb: XL_COLOR.tab }, defaultRowHeight: 13.8 },
+    views: [{ state: 'normal', showGridLines: false, zoomScale: 90, zoomScaleNormal: 90, activeCell: `S${T.firstRow}` }],
+  });
+  for (let c = 1; c <= 17; c++) ws.getColumn(c).width = 3;
+  CX_COLS.forEach((L) => { const col = ws.getColumn(L); col.width = XL_WIDTH[L]; col.font = XL_FONT; });
+  // Above the table the export has nothing: those rows are hidden, so the file opens
+  // on the table while every cell keeps its address in the Reporting.
+  for (let r = 1; r < H; r++) { const row = ws.getRow(r); row.height = 13.8; row.hidden = true; }
+
+  CX_COLS.forEach((L, i) => xlPut(ws, L + H, CX_HEAD[i], capexCellLook('hdr', L)));
+  ws.getRow(H).height = 27.6;
   let last = H;
-  CX_COLS.forEach((L, i) => { ws[L + H] = { t: 's', v: CX_HEAD[i] }; });
   for (const it of C.results) {
     const r = it.xl.row, f = it.fields;
     last = Math.max(last, r);
     CX_KEYS.forEach((k, i) => {
-      const a = CX_COLS[i] + r, v = f[k];
-      if (k === 'sino') return;
+      const L = CX_COLS[i], v = f[k];
+      let value = null;
       if (k === 'chiave') {
-        if (f.projectId) ws[a] = { t: 's', v: String(f.projectId), f: `+T${r}` };
-        return;
-      }
-      if (k === 'importo') {
+        value = f.projectId ? { formula: `+T${r}`, result: String(f.projectId) } : null;
+      } else if (k === 'importo') {
         const n = cxNum(v);
-        if (it.xl.ai === 'sum') ws[a] = { t: 'n', v: n, f: `+SUM(AF${r}:AH${r})`, z: CX_EUR_FORMAT };
-        else if (it.xl.ai === 'adj') ws[a] = { t: 'n', v: n, f: `${it.xl.base}+AG${r}+AH${r}`, z: CX_EUR_FORMAT };
-        else ws[a] = { t: 'n', v: n, z: CX_EUR_FORMAT };
-        return;
+        value = it.xl.ai === 'sum' ? { formula: `+SUM(AF${r}:AH${r})`, result: n }
+          : it.xl.ai === 'adj' ? { formula: `${it.xl.base}+AG${r}+AH${r}`, result: n }
+          : n;
+      } else if (k !== 'sino') {
+        if (typeof v === 'number') value = v;
+        else if (!CX_NUMERIC.has(k) && !cxBlank(v)) value = String(v);
       }
-      if (CX_NUMERIC.has(k)) {
-        if (typeof v === 'number') ws[a] = { t: 'n', v, z: CX_EUR_FORMAT };
-        return;
-      }
-      if (typeof v === 'number') ws[a] = { t: 'n', v };
-      else if (!cxBlank(v)) ws[a] = { t: 's', v: String(v) };
+      xlPut(ws, `${L}${r}`, value, capexCellLook(it.xl.kind, L));
     });
   }
-  ws['!ref'] = `R${H}:AJ${last}`;
-  const widths = { R: 12, S: 18, T: 18, U: 34, V: 24, W: 11, X: 22, Y: 16, Z: 44, AA: 26, AB: 12, AC: 12, AD: 12, AE: 12, AF: 16, AG: 14, AH: 14, AI: 18, AJ: 24 };
-  ws['!cols'] = Array.from({ length: 36 }, (_, i) => ({ wch: i < 17 ? 3 : widths[CX_COLS[i - 17]] || 12 }));
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'CapEx');
+  ws.autoFilter = `R${H}:AJ${last}`;
 
+  /* --- Da rivedere: the rows that need a look, with their notes --- */
+  const ws2 = wb.addWorksheet('Da rivedere', {
+    properties: { tabColor: { argb: XL_COLOR.flagFill } },
+    views: [{ state: 'frozen', ySplit: 1, showGridLines: false, zoomScale: 90 }],
+  });
+  [8, 20, 14, 18, 18, 16, 110].forEach((w, i) => { ws2.getColumn(i + 1).width = w; });
+  ['Riga', 'Project ID', 'Stato', 'AI nuovo', 'AI mese prec.', 'Δ', 'Nota'].forEach((h, i) => xlPut(ws2, `${'ABCDEFG'[i]}1`, h, XL_HEADER_LOOK));
+  ws2.getRow(1).height = 27.6;
   const STATUS = { auto: 'ok', flag: 'da rivedere', anomaly: 'anomalia' };
-  const rev = [['Riga', 'Project ID', 'Stato', 'AI nuovo', 'AI mese prec.', 'Δ', 'Nota']];
+  let rr = 1;
   for (const it of C.results) {
     if (it.status === 'auto') continue;
-    rev.push([it.xl.row, it.fields.projectId || '(riga manuale)', STATUS[it.status],
-      cxNum(it.fields.importo), cxNum(it.fields.prev), cxNum(it.fields.delta), it.reason || '']);
+    rr++;
+    const top = { vertical: 'top' };
+    const stLook = it.status === 'anomaly'
+      ? { fill: XL_COLOR.anomalyFill, color: XL_COLOR.anomalyInk, align: top }
+      : { fill: XL_COLOR.flagFill, color: XL_COLOR.flagInk, align: top };
+    xlPut(ws2, `A${rr}`, it.xl.row, { align: top });
+    xlPut(ws2, `B${rr}`, it.fields.projectId || '(riga manuale)', { align: top });
+    xlPut(ws2, `C${rr}`, STATUS[it.status], stLook);
+    xlPut(ws2, `D${rr}`, cxNum(it.fields.importo), { nf: XL_NF_ACC2, align: top });
+    xlPut(ws2, `E${rr}`, cxNum(it.fields.prev), { nf: XL_NF_ACC2, align: top });
+    xlPut(ws2, `F${rr}`, cxNum(it.fields.delta), { nf: XL_NF_ACC2, align: top });
+    xlPut(ws2, `G${rr}`, it.reason || '', { align: { vertical: 'top', wrapText: true } });
   }
-  const ws2 = XLSX.utils.aoa_to_sheet(rev);
-  ws2['!cols'] = [{ wch: 7 }, { wch: 18 }, { wch: 12 }, { wch: 16 }, { wch: 16 }, { wch: 14 }, { wch: 110 }];
-  XLSX.utils.book_append_sheet(wb, ws2, 'Da rivedere');
+  ws2.autoFilter = `A1:G${rr}`;
 
+  /* --- Controlli: the sheet's checks, with the totals as formulas --- */
   const rowsOfKind = (kinds) => C.results.filter(x => kinds.includes(x.xl.kind)).map(x => x.xl.row);
   // a SUM formula only when the block is one contiguous range, otherwise the plain value
   const sumCell = (kinds, v) => {
     const r = rowsOfKind(kinds);
     if (r.length) {
       const a = Math.min(...r), b = Math.max(...r);
-      if (b - a + 1 === r.length) return { t: 'n', v, f: `SUM(CapEx!AI${a}:AI${b})`, z: CX_EUR_FORMAT };
+      if (b - a + 1 === r.length) return { formula: `SUM(CapEx!AI${a}:AI${b})`, result: v };
     }
-    return { t: 'n', v, z: CX_EUR_FORMAT };
+    return v;
   };
-  const num = (v) => ({ t: 'n', v, z: CX_EUR_FORMAT });
-  const diff = (r, v) => ({ t: 'n', v: cxR6(v), f: `B${r}-C${r}`, z: CX_EUR_FORMAT });
+  const diff = (r, v) => ({ formula: `B${r}-C${r}`, result: cxR6(v) });
   const dataRows = rowsOfKind(['d', 'i', 'c']);
-  const adj = dataRows.length
-    ? { t: 'n', v: 0, f: `SUM(CapEx!AG${Math.min(...dataRows)}:AH${Math.max(...dataRows)})`, z: CX_EUR_FORMAT }
-    : num(0);
+  const adj = dataRows.length ? { formula: `SUM(CapEx!AG${Math.min(...dataRows)}:AH${Math.max(...dataRows)})`, result: 0 } : 0;
 
   const newRows = C.results.filter(x => x.xl.isNew).map(x => x.xl.row);
   const newCvs = C.results.some(x => x.xl.isNew && x.xl.kind === 'c' && x.fields.societa === 'Civismart');
@@ -1035,17 +1116,17 @@ function buildCapexXlsx(C) {
   const baseRef = T.embedded ? `${T.baseOf} salvata nell’app` : `del Reporting caricato (${T.base})`;
   const dbName = C.dbFileName || 'DB commesse';
   const tot = [
-    ['Controllo', 'Nuovo (da questo file)', 'Mese prima', 'Differenza', 'Con cosa confrontarlo nel Reporting'],
-    ['FV diretti + indiretti', sumCell(['d', 'i'], T.fv), num(T.prevFv), diff(2, T.fv - T.prevFv), 'CapEx!AI483 “FV Capex Stato Patrimoniale” (Check FV in AI484)'],
-    ['Indiretti FV + capitalizzazioni CVS/SPV', sumCell(['i', 'c'], T.ce), num(T.prevCe), diff(3, T.ce - T.prevCe), '“Costruzioni interne” del BDV (Check CE in AI481:AI482)'],
-    ['di cui FV diretti', sumCell(['d'], T.dir), '', '', ''],
-    ['di cui FV indiretti', sumCell(['i'], T.ind), '', '', ''],
-    ['di cui capitalizzazioni CVS/SPV', sumCell(['c'], T.cap), '', '', ''],
-    ['Rettifiche manuali Adj.1/Adj.2', adj, num(T.prevAdj), diff(7, -T.prevAdj), 'quelle del mese prima non sono riportate: rimettile in AG/AH se servono ancora'],
-    [],
+    ['FV diretti + indiretti', sumCell(['d', 'i'], T.fv), T.prevFv, diff(2, T.fv - T.prevFv), 'CapEx!AI483 “FV Capex Stato Patrimoniale” (Check FV in AI484)'],
+    ['Indiretti FV + capitalizzazioni CVS/SPV', sumCell(['i', 'c'], T.ce), T.prevCe, diff(3, T.ce - T.prevCe), '“Costruzioni interne” del BDV (Check CE in AI481:AI482)'],
+    ['di cui FV diretti', sumCell(['d'], T.dir)],
+    ['di cui FV indiretti', sumCell(['i'], T.ind)],
+    ['di cui capitalizzazioni CVS/SPV', sumCell(['c'], T.cap)],
+    ['Rettifiche manuali Adj.1/Adj.2', adj, T.prevAdj, diff(7, -T.prevAdj), 'quelle del mese prima non sono riportate: rimettile in AG/AH se servono ancora'],
+  ];
+  const notes = [
     ['Base righe e valori del mese prima', T.base],
     ['Tabella', `R${T.headerRow}:AJ${T.lastRow}`],
-    [],
+    null,
     ['Come è costruita la tabella'],
     ['Fonte', `${dbName}: fogli ${T.sheets.join(', ')}. Ordine righe e anagrafiche dalla tabella CapEx ${baseRef}.`],
     ['FV diretti', 'AF = somma di “Capitalizzazioni” del foglio Fotovoltaico per Project ID; AI = AF + AG + AH.'],
@@ -1059,23 +1140,43 @@ function buildCapexXlsx(C) {
     ['Commesse nuove', newRows.length
       ? `Righe ${cxRowRanges(newRows)}.${newCvs ? ' Società “Civismart” per le CVS, come le righe storiche, così entrano nel Liquidity FCT.' : ''}`
       : 'Nessuna.'],
-    ...manual.map(m => [
-      `Riga ${m.xl.row}${[m.fields.comuneClean, m.fields.societa].filter(v => !cxBlank(v)).length ? ` (${[m.fields.comuneClean, m.fields.societa].filter(v => !cxBlank(v)).join(', ')})` : ''}`,
-      `Riga manuale senza Project ID: riportato il valore ${T.baseOf}.`,
-    ]),
-    ['Come incollare', `Copia S${T.firstRow}:AJ${T.lastRow}, nel Reporting seleziona CapEx!S${T.firstRow} e usa Incolla speciale › Formule. Poi estendi la formula di R fino alla riga ${T.lastRow}.`],
+    ...manual.map(m => {
+      const what = [m.fields.comuneClean, m.fields.societa].filter(v => !cxBlank(v));
+      return [`Riga ${m.xl.row}${what.length ? ` (${what.join(', ')})` : ''}`, `Riga manuale senza Project ID: riportato il valore ${T.baseOf}.`];
+    }),
+    ['Come incollare', `Copia S${T.firstRow}:AJ${T.lastRow}, nel Reporting seleziona CapEx!S${T.firstRow} e incolla (Ctrl+V): formule e formato sono quelli del foglio CapEx, anche per le righe nuove. Poi estendi la formula di R fino alla riga ${T.lastRow}.`],
     ['Mese prima (colonna C)', `Valori della tabella ${T.baseOf}, non formule.`],
   ];
-  const ws3 = XLSX.utils.aoa_to_sheet(tot);
-  ws3['!cols'] = [{ wch: 40 }, { wch: 22 }, { wch: 18 }, { wch: 16 }, { wch: 70 }];
-  XLSX.utils.book_append_sheet(wb, ws3, 'Controlli');
-  return XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const ws3 = wb.addWorksheet('Controlli', { views: [{ state: 'normal', showGridLines: false, zoomScale: 90 }] });
+  [40, 24, 20, 18, 70].forEach((w, i) => { ws3.getColumn(i + 1).width = w; });
+  ['Controllo', 'Nuovo (da questo file)', 'Mese prima', 'Differenza', 'Con cosa confrontarlo nel Reporting']
+    .forEach((h, i) => xlPut(ws3, `${'ABCDE'[i]}1`, h, XL_HEADER_LOOK));
+  ws3.getRow(1).height = 27.6;
+  tot.forEach((row, j) => {
+    const r = j + 2;
+    xlPut(ws3, `A${r}`, row[0], { bold: j < 2 || j === 5 });
+    ['B', 'C', 'D'].forEach((L, k) => xlPut(ws3, `${L}${r}`, row[k + 1], { nf: XL_NF_ACC2 }));
+    xlPut(ws3, `E${r}`, row[4], { align: { wrapText: true, vertical: 'top' } });
+  });
+  let r3 = tot.length + 3; // one empty row after the checks
+  for (const row of notes) {
+    if (row) {
+      const title = row.length === 1;
+      xlPut(ws3, `A${r3}`, row[0], { bold: title, align: { vertical: 'top' } });
+      if (!title) {
+        ws3.mergeCells(`B${r3}:E${r3}`);
+        xlPut(ws3, `B${r3}`, row[1], { align: { wrapText: true, vertical: 'top' } });
+      }
+    }
+    r3++;
+  }
+  return wb.xlsx.writeBuffer();
 }
 
 async function exportCapexXlsx(C) {
   const T = C.totals;
   const name = `CapEx_R${T.headerRow}-AJ${T.lastRow}_${new Date().toISOString().slice(0, 10)}.xlsx`;
-  const blob = new Blob([buildCapexXlsx(C)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const blob = new Blob([await buildCapexXlsx(C)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
   await saveFile(name, blob);
 }
 
@@ -2239,7 +2340,8 @@ function CapexChecks({ C }) {
         Righe {T.firstRow}–{T.lastRow}, base: {T.base}.
         {T.prevAdj !== 0 && <> Le rettifiche del mese prima in Adj.1/Adj.2 ({eur(T.prevAdj)}) non sono riportate: sono elencate tra le righe da rivedere.</>}
         {' '}Per incollare: «Copia tabella», poi nel Reporting seleziona CapEx!S{T.firstRow} e incolla; infine estendi la
-        formula di R fino alla riga {T.lastRow}. Dall’Excel esportato: copia S{T.firstRow}:AJ{T.lastRow} e usa Incolla speciale › Formule.
+        formula di R fino alla riga {T.lastRow}. Dall’Excel esportato, che ha lo stesso formato del foglio CapEx: copia S{T.firstRow}:AJ{T.lastRow}
+        e incollalo in CapEx!S{T.firstRow} con Ctrl+V, così anche le righe nuove prendono il formato del foglio.
         {T.shifted && <> Ci sono commesse FV nuove: le righe sotto i blocchi FV scendono, ricontrolla i range fissi dei controlli.</>}
       </p>
     </section>
