@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import * as XLSX from 'xlsx';
+import CAPEX_BASE_SETTEMBRE from './capex_base_settembre_2026.json';
 import {
   Upload, FileSpreadsheet, Check, AlertTriangle, AlertOctagon, Download,
   Database, ChevronRight, Loader2, Info, Zap, Sun, Building2, Landmark,
@@ -105,8 +106,11 @@ const MODES = [
   {
     id: 'capex', label: 'CapEx', icon: Zap,
     tagline: 'Fotovoltaico + capitalizzazioni CVS/SPV',
-    dest: 'sheet "CapEx", tabella da R448',
-    fileHint: 'Il file "DB commesse" (fogli Fotovoltaico e capitalizzazioni) oppure l\'export grezzo "Financials Commesse"',
+    dest: 'sheet "CapEx", tabella R:AJ da riga 485',
+    fileHint: 'Il file "DB commesse" (fogli Fotovoltaico, capitalizzazioni CVS e capitalizzazioni SPVs)',
+    emptyHint: 'Carica il DB commesse con i fogli Fotovoltaico, capitalizzazioni CVS e capitalizzazioni SPVs. ' +
+      'Il Consolidated Reporting del mese prima è facoltativo: ne leggo solo il foglio CapEx per riprendere righe, ordine e anagrafiche; ' +
+      'senza, parto dalla tabella di settembre 2026 salvata nell’app.',
     accept: '.xlsx,.xls',
     multi: false,
   },
@@ -115,6 +119,8 @@ const MODES = [
     tagline: 'Bilancio di Verifica + P&L per classe',
     dest: 'sheet "BDV", colonna del mese corrente',
     fileHint: 'Due file: il Bilancio di Verifica NetSuite e il Profit&Loss per classe',
+    emptyHint: 'Carica il Bilancio di Verifica e il Profit & Loss per classe. Il bilancio De Giorgi è facoltativo: ' +
+      'se lo aggiungi, l’output riporta una colonna per CVS e una per De Giorgi.',
     accept: '.xls,.xlsx',
     multi: true,
   },
@@ -123,6 +129,7 @@ const MODES = [
     tagline: 'Report consolidato Gruppo SGP',
     dest: 'nuovo sheet "SGP26 {mese}"',
     fileHint: 'Il "Gruppo SGP Report" (foglio SGP+SPV)',
+    emptyHint: 'Carica il “Gruppo SGP Report” (foglio SGP+SPV).',
     accept: '.xlsx,.xls',
     multi: false,
   },
@@ -131,6 +138,7 @@ const MODES = [
     tagline: 'Ricavi e costi diretti per commessa',
     dest: 'sheet "CVS BU", tabella da riga 175',
     fileHint: 'Il file "DB commesse" (foglio Elab 3) oppure l\'export grezzo "Financials Commesse"',
+    emptyHint: 'Carica il DB commesse (foglio Elab 3) oppure l’export grezzo “Financials Commesse”.',
     accept: '.xlsx,.xls',
     multi: false,
   },
@@ -209,18 +217,22 @@ function toCSV(rows, columns) {
   return [header, ...lines].join('\n');
 }
 
-async function downloadText(filename, text) {
-  const blob = new Blob(['\uFEFF' + text], { type: 'text/csv;charset=utf-8' });
-
-  // Inside the published Artifact, a page can't trigger a browser download
-  // itself (<a download> is inert there) \u2014 files go out through the
-  // "downloads" capability instead, which asks the viewer to confirm.
+// Offer a generated file to the viewer. Inside the published Artifact a page
+// can't start a browser download itself (<a download> is inert there): files go
+// out through the "downloads" capability, which asks the viewer to confirm.
+// Resolves quietly when the viewer says no; rejects with a message to show for
+// any other failure.
+async function saveFile(filename, blob) {
   const downloads = await window.claude?.use?.('downloads').catch(() => null);
   if (downloads) {
     try {
       await downloads.save({ filename, data: blob });
     } catch (e) {
-      // viewer declined, or another prompt is open \u2014 nothing else to do here
+      if (e?.code === 'declined') return;
+      if (e?.code === 'rate_limited') {
+        throw new Error('c’è già una richiesta di salvataggio aperta: confermala o chiudila, poi riprova');
+      }
+      throw new Error(e?.message || 'salvataggio non riuscito');
     }
     return;
   }
@@ -231,7 +243,11 @@ async function downloadText(filename, text) {
   const a = document.createElement('a');
   a.href = url; a.download = filename;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+function downloadText(filename, text) {
+  return saveFile(filename, new Blob(['﻿' + text], { type: 'text/csv;charset=utf-8' }));
 }
 
 let _keyCounter = 0;
@@ -421,291 +437,656 @@ function sheetRows(wb, sheetName) {
    ============================================================================ */
 
 /* ----------------------------------------------------------------------------
-   CapEx from the raw "Financials Commesse" export
+   The output is the CapEx!R:AJ table of the Consolidated Reporting, header in
+   row 485 and data from 486, in four blocks that must keep their place because
+   the sheet's own checks sum fixed ranges (AI487:AI542 for FV in AI483-AI484,
+   AI515 downwards for "Costruzioni interne" in AI481-AI482):
 
-   The three enriched sheets (Fotovoltaico, capitalizzazioni CVS, capitalizzazioni
-   SPVs) are themselves built from the raw export. Reading their own formulas back:
+     486       manual row without Project ID (Pagani, SGP): last month's value
+     487-514   FV diretti    U "diretti",   AF = sum of "Capitalizzazioni", AI = +SUM(AF:AH)
+     515-542   FV indiretti  U "indiretti", AI = sum of "Delta Indiretti"
+     543-...   capitalizzazioni, one row per Project ID:
+               CVS -> sum of "Capitalizzazione Costi indiretti", SPV -> sum of "Capitalizzazioni"
 
-     Totale          = Manodopera + Servizi + Materiali + Oneri   (the direct costs)
-     Capitalizzazioni = Totale x % ATI
-     colonna AI       = Capitalizzazioni x 1,15   for CiviSmart and Fotovoltaico
-                      = Capitalizzazioni         for the SPVs (no indirect uplift)
-     Fotovoltaico     = one "diretti" row (Capitalizzazioni, summed over the activity
-                        codes of the project) and one "indiretti" row (x 0,15)
+   The base is last month's table, read from the CapEx sheet of the previous
+   Consolidated Reporting, or the September 2026 table shipped with the app:
+   same rows, same order, same anagrafica, only the amounts change, so the
+   output pastes straight over the existing table. A project that disappeared
+   goes to 0 on its own row; new projects are appended (a new FV project gets a
+   row at the bottom of both FV blocks, pushing the rows below down).
 
-   What the raw file cannot carry is the anagrafica: the % ATI share, the owning
-   company and which of the three groups a project belongs to. Those come from the
-   DB commesse; a project that has none is flagged rather than guessed at.
+   Columns of the DB commesse sheets are found by exact header name in the row
+   that holds "Project ID", first occurrence: the Fotovoltaico sheet carries a
+   pivot to the right with look-alike headers ("Somma di Capitalizzazioni"), and
+   the October file added a "Subsidiary" column in A, which broke the old
+   positional reads. The % ATI is already applied inside the sheets, so it is
+   never multiplied again.
 
-   Rows are capitalised when their activity code is NOT one of those CVS BU takes —
-   i.e. the CONSTRUCTION and PREPARATION families.
+   Manual adjustments in AG/AH (Adj.1/Adj.2) are not carried over: they square
+   the table with the balance sheet and change every month. AI stays a formula
+   on those rows so they can be put back.
    ---------------------------------------------------------------------------- */
-function capexFromRaw(wb, db) {
-  const parsed = readCommesseRows(wb, db);
-  if (parsed.error) return { error: parsed.error };
 
-  const whitelist = new Set(db.cvsBuWhitelist || []);
-  const rate = db.capexIndirectRate ?? 0.15;
-  const fvAgg = {}, csAgg = {};
+// The September 2026 base lives in its own JSON file, outside SEED_DATA: the
+// app copies SEED_DATA into the shared database on first start and saved data
+// wins over the code from then on, so a base kept there could never be updated.
+const CX_COLS = ['R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ'];
+const CX_KEYS = ['sino', 'chiave', 'projectId', 'comuneRaw', 'comuneClean', 'bu', 'service', 'contract', 'dettaglio', 'activityCode', 'materiali', 'servizi', 'manodopera', 'oneri', 'totale', 'adj1', 'adj2', 'importo', 'societa'];
+const CX_HEAD = ['Sì/No', 'Chiave', 'Project ID', 'Comune', 'Comune', 'BU', 'Type of service', 'Type of Contract', 'Dettaglio commessa', 'Activity Code', '04 - Materiali', '02 - Servizi', '03 - Manodopera', '01 - Oneri', 'Totale', 'Adj.1', 'Adj.2', 'Capitalizzazione + Costi indiretti', 'Società'];
+const CX_NUMERIC = new Set(['totale', 'adj1', 'adj2', 'importo']);
+const CX_EUR_FORMAT = '#,##0.00';
 
-  for (const rec of parsed.records) {
-    const family = activityCodeFamily(rec.act);
-    if (whitelist.has(family)) continue;               // belongs to CVS BU, not CapEx
-    if (family !== 'CONSTRUCTION' && family !== 'PREPARATION') continue;
-    const totale = rec.dc || 0;
-    if (!totale) continue;
+function cxNum(v) { return typeof v === 'number' && isFinite(v) ? v : 0; }
+// sums are rounded to 6 decimals, the precision the Reporting itself carries
+function cxR6(v) { return Math.round(v * 1e6) / 1e6; }
+function cxEur(v) { return fmtEUR(cxNum(v)); }
+function cxBlank(v) { return v === null || v === undefined || (typeof v === 'string' && v.trim() === ''); }
 
-    const hist = (db.capexProjectDB && db.capexProjectDB[rec.pid]) || null;
-    const { second } = projectIdSegments(rec.pid);
-    const group = hist?.group || (second === 'PHV' ? 'FV' : 'CVS');
-    // Commesse senza anagrafica CapEx: % ATI assunta a 1, Società a "Civismart"
-    // più sotto — nessuna segnalazione per revisione.
-    const ati = hist?.pctATI ?? 1;
+// Last month's table from a Consolidated Reporting (only its CapEx sheet is read).
+// The header is the row with "Project ID" and, 15 columns to the right,
+// "Capitalizzazione + Costi indiretti"; the table starts two columns left of
+// Project ID (R:AJ when Project ID sits in T).
+function readCapexBase(wb, label) {
+  const sn = findSheet(wb, ['CapEx']);
+  if (!sn || !wb.Sheets[sn]) {
+    return { error: `Nel Consolidated Reporting non trovo il foglio “CapEx”. Fogli presenti: ${wb.SheetNames.join(', ')}.` };
+  }
+  const ws = wb.Sheets[sn];
+  if (!ws['!ref']) return { error: 'Nel Consolidated Reporting il foglio “CapEx” è vuoto.' };
+  const rg = XLSX.utils.decode_range(ws['!ref']);
+  const cell = (r, c) => ws[XLSX.utils.encode_cell({ r, c })];
 
-    const cap = totale * ati;
-    const name = rec.name || '';
-    const comuneRaw = name.split(':')[0];
-    const dettaglio = name.includes(':') ? name.slice(name.indexOf(':') + 1) : name;
-
-    if (group === 'FV') {
-      if (!fvAgg[rec.pid]) fvAgg[rec.pid] = { diretti: 0, indiretti: 0, name };
-      fvAgg[rec.pid].diretti += cap;
-      fvAgg[rec.pid].indiretti += cap * rate;
-    } else {
-      const key = rec.pid + '\u0001' + rec.act;
-      if (!csAgg[key]) {
-        csAgg[key] = { pid: rec.pid, act: rec.act, ai: 0, aj: hist?.societa || null, comuneRaw, dettaglio };
+  let hr = -1, pc = -1;
+  for (let r = rg.s.r; r <= rg.e.r && hr < 0; r++) {
+    for (let c = rg.s.c; c <= rg.e.c; c++) {
+      const x = cell(r, c);
+      if (x && norm(x.v) === 'project id') {
+        const ai = cell(r, c + 15);
+        if (ai && norm(ai.v) === 'capitalizzazione + costi indiretti') { hr = r; pc = c; break; }
       }
-      csAgg[key].ai += group === 'SPV' ? cap : cap * (1 + rate);
     }
   }
+  if (hr < 0) {
+    return { error: 'Nel foglio “CapEx” del Consolidated Reporting non trovo l’intestazione della tabella (“Project ID” e, 15 colonne più a destra, “Capitalizzazione + Costi indiretti”).' };
+  }
 
-  return { fvAgg, csAgg, isRaw: true, sheetName: parsed.sheetName };
+  // The sheet's used range can run far below the table (formatting down to the
+  // last row of the grid): stop at the last row that holds anything in the table.
+  const c0 = pc - 2;
+  let lastRow = hr;
+  for (const addr of Object.keys(ws)) {
+    if (addr[0] === '!') continue;
+    const { r, c } = XLSX.utils.decode_cell(addr);
+    if (r > lastRow && c >= c0 + 2 && c < c0 + 19 && !cxBlank(ws[addr].v)) lastRow = r;
+  }
+
+  const rows = [];
+  for (let r = hr + 1; r <= lastRow; r++) {
+    const v = [];
+    let any = false;
+    for (let k = 0; k < 19; k++) {
+      const x = cell(r, c0 + k);
+      const val = x ? (x.v ?? null) : null;
+      v.push(val);
+      if (k >= 2 && !cxBlank(val)) any = true;
+    }
+    if (!any) continue;
+    const aiCell = cell(r, c0 + 17);
+    rows.push({ r: r + 1, v, aiF: aiCell && aiCell.f ? String(aiCell.f) : null });
+  }
+  return {
+    source: label, when: 'nel mese precedente', vs: 'rispetto al mese precedente', of: 'del mese precedente',
+    col: 'AI mese prec.', headerRow: hr + 1, rows,
+  };
 }
 
-function processCapEx(wb, db) {
-  const fvSheetName = findSheet(wb, ['Fotovoltaico']);
-  const cvsSheetName = findSheet(wb, ['capitalizzazioni CVS']);
-  const spvSheetName = findSheet(wb, ['capitalizzazioni SPVs']);
-  const enriched = fvSheetName && cvsSheetName && spvSheetName;
+// The base shipped with the app: the September 2026 table (CapEx!R485:AJ797)
+function capexBaseEmbedded() {
+  const T = CAPEX_BASE_SETTEMBRE;
+  return {
+    source: T.source, when: `a ${T.label}`, vs: `rispetto a ${T.label}`, of: `di ${T.label}`,
+    col: `AI ${T.label}`, headerRow: T.headerRow, embedded: true,
+    rows: T.rows.map(a => ({ r: a[0], v: a.slice(1, 20), aiF: a[20] || null })),
+  };
+}
 
-  let rawBuilt = null;
-  if (!enriched) {
-    rawBuilt = capexFromRaw(wb, db);
-    if (rawBuilt.error) {
-      const missing = [];
-      if (!fvSheetName) missing.push('Fotovoltaico');
-      if (!cvsSheetName) missing.push('capitalizzazioni CVS');
-      if (!spvSheetName) missing.push('capitalizzazioni SPVs');
-      return {
-        error: `Il file non contiene né i fogli elaborati (${missing.join(', ')}) né l'export grezzo "Financials Commesse". ` +
-          `Fogli disponibili: ${wb.SheetNames.join(', ')}. Dettaglio: ${rawBuilt.error}`,
-      };
-    }
+// A DB commesse sheet with its header row (the one holding "Project ID", within
+// the first 25 rows) and a column finder by exact header name, first occurrence.
+function capexSheetTable(wb, names) {
+  const sn = findSheet(wb, names);
+  if (!sn) return null;
+  const rows = sheetRows(wb, sn);
+  let h = -1;
+  for (let i = 0; i < Math.min(rows.length, 25); i++) {
+    if ((rows[i] || []).some(v => norm(v) === 'project id')) { h = i; break; }
   }
-
-  const results = [];
-  const newComuni = new Set();
-
-  function resolveComune(rawComune, projectId) {
-    // The CVS BU register holds the same anagrafica keyed by project code, which is an
-    // exact match rather than a text match on the raw description — so it comes first,
-    // and it carries the corrections made there.
-    const cvs = db.cvsBuProjectDB && db.cvsBuProjectDB[projectId];
-    if (cvs && cvs.comune) {
-      return {
-        comune: cvs.comune, bu: cvs.bu || db.comuneToBU[cvs.comune] || null,
-        comuneSource: 'anagrafica CVS BU (per codice commessa)',
-        buSource: cvs.bu ? 'anagrafica CVS BU' : null,
-      };
+  if (h < 0) return { sheet: sn, error: `Nel foglio “${sn}” non trovo l’intestazione “Project ID”.` };
+  const hdr = (rows[h] || []).map(norm);
+  const col = (n) => {
+    for (const x of [].concat(n)) {
+      const i = hdr.indexOf(x);
+      if (i >= 0) return i;
     }
-    const clean = db.comuneCleanDB[rawComune];
-    if (clean) {
-      const bu = db.comuneToBU[clean] || null;
-      return { comune: clean, bu, comuneSource: 'storico CapEx', buSource: bu ? 'storico' : null };
-    }
-    const guess = stripComuneDiPrefix(rawComune || '');
-    const bu = db.comuneToBU[guess] || null;
-    newComuni.add(rawComune);
-    return { comune: guess, bu, comuneSource: 'nuovo (regola Title Case)', buSource: bu ? 'storico (nome combacia)' : null };
+    return -1;
+  };
+  return { sheet: sn, rows, h, col };
+}
+
+function processCapEx(wb, db, baseIn) {
+  const fvT = capexSheetTable(wb, ['Fotovoltaico']);
+  const cvT = capexSheetTable(wb, ['capitalizzazioni CVS']);
+  // older DB commesse files name the sheet in the singular
+  const spT = capexSheetTable(wb, ['capitalizzazioni SPVs', 'capitalizzazioni SPV']);
+  const missing = [];
+  if (!fvT) missing.push('Fotovoltaico');
+  if (!cvT) missing.push('capitalizzazioni CVS');
+  if (!spT) missing.push('capitalizzazioni SPVs');
+  if (missing.length) {
+    return {
+      error: `Nel file ${missing.length === 1 ? 'manca il foglio' : 'mancano i fogli'} ${missing.join(', ')}. ` +
+        'Serve il “DB commesse” con i fogli Fotovoltaico, capitalizzazioni CVS e capitalizzazioni SPVs. ' +
+        `Fogli presenti: ${wb.SheetNames.join(', ')}.`,
+    };
   }
+  for (const t of [fvT, cvT, spT]) if (t.error) return { error: t.error };
 
-  // ---- Fotovoltaico: aggregate per project (from the enriched sheet or the raw export) ----
-  const fvAgg = {};
-  if (enriched) {
-    const fvRows = sheetRows(wb, fvSheetName);
-    for (let i = 5; i < fvRows.length; i++) {
-      const row = fvRows[i];
+  const base = baseIn || capexBaseEmbedded();
+  if (base.error) return { error: base.error };
+  const W = base.when, Wc = W.charAt(0).toUpperCase() + W.slice(1), V = base.vs;
+  const rate = db.capexIndirectRate ?? 0.15;
+  const nR = (n) => `${n} ${n === 1 ? 'riga' : 'righe'}`;
+
+  /* --- one aggregate per Project ID, summing every activity code --- */
+  function aggregate(T, kind) {
+    const out = new Map();
+    const pid = T.col('project id');
+    // the capitalizzazioni sheets of older files only have the reworked code column
+    const act = T.col(['activity code tr.', 'activity code', 'new activity code + note', 'new activity code']);
+    const nm = T.col('project name'), cm = T.col('comune'), dt = T.col('dettaglio commessa'), sb = T.col('subsidiary');
+    const tot = T.col('totale'), ati = T.col('% ati'), cap = T.col('capitalizzazioni');
+    const capI = T.col('capitalizzazione costi indiretti'), dI = T.col('delta indiretti');
+    if (kind === 'fv' && cap < 0 && tot < 0) return { error: `Nel foglio “${T.sheet}” non trovo né “Capitalizzazioni” né “Totale”.` };
+    if (kind === 'cvs' && capI < 0 && cap < 0) return { error: `Nel foglio “${T.sheet}” non trovo “Capitalizzazione Costi indiretti”.` };
+    if (kind === 'spv' && cap < 0 && tot < 0) return { error: `Nel foglio “${T.sheet}” non trovo “Capitalizzazioni”.` };
+
+    for (let i = T.h + 1; i < T.rows.length; i++) {
+      const row = T.rows[i];
       if (!row) continue;
-      const pid = row[1];
-      if (!pid) continue;
-      if (!fvAgg[pid]) fvAgg[pid] = { diretti: 0, indiretti: 0, name: row[2] };
-      fvAgg[pid].diretti += (row[10] || 0);
-      fvAgg[pid].indiretti += (row[13] || 0);
-    }
-  } else {
-    Object.assign(fvAgg, rawBuilt.fvAgg);
-  }
-  // pre-compute per-project static fields once, then emit in two grouped passes
-  // (all diretti first, then all indiretti, same project order both times) —
-  // matches the real sheet's layout, not an interleaved diretti/indiretti/diretti/indiretti order
-  const fvComputed = Object.entries(fvAgg).map(([pid, agg]) => {
-    const cls = classifyCapexProject(pid, db);
-    const comuneRaw = (agg.name || '').split(':')[0];
-    const res = resolveComune(comuneRaw, pid);
-    let { comune, bu } = res;
-    let buNote = null;
-    const cad = lookupCadastral(pid, db);
-    if (!bu && cad && cad.bu) {
-      bu = cad.bu;
-      buNote = `BU dedotta dal codice catastale ${cad.code} (${cad.comune}) contenuto nel Project ID`;
-    } else if (bu && cad && cad.bu && cad.bu !== bu) {
-      buNote = `BU DA VERIFICARE: nel DB commesse è "${bu}", ma il codice catastale ${cad.code} corrisponde a ${cad.comune} → "${cad.bu}". Valore tenuto: quello del DB commesse.`;
-    }
-    return { pid, agg, cls, comune, bu, buNote, buMismatch: !!(buNote && buNote.startsWith('BU DA VERIFICARE')) };
-  });
+      const id = row[pid];
+      if (cxBlank(id)) continue;
+      const p = String(id).trim();
+      if (/total/i.test(p)) continue; // subtotal rows of the sheet
 
-  function emitFVRow(item, kind, val) {
-    const { pid, agg, cls, comune, bu, buNote, buMismatch } = item;
-    // FV projects are no longer all Civismart (most moved to Sinergia): the
-    // project's own anagrafica decides, Civismart only for projects without one.
-    const societa = db.capexProjectDB?.[pid]?.societa || 'Civismart';
-    const reasons = [];
-    if (!bu) reasons.push('BU non trovata per questo comune — verificare manualmente');
-    if (!cls.service) reasons.push(`segmenti del Project ID "${pid}" non riconosciuti — Tipo servizio/contratto da inserire a mano`);
-    if (buMismatch) reasons.push(buNote);
-    results.push({
-      key: nextKey(), status: (bu && cls.service && !buMismatch) ? 'auto' : 'flag',
-      reason: reasons.join(' · ') || null,
-      fields: {
-        sino: '', chiave: '', projectId: pid, comuneRaw: kind, comuneClean: comune, bu: bu || '?',
-        service: cls.service || '?', contract: cls.contract || '?', dettaglio: agg.name,
-        activityCode: '', materiali: '', servizi: '', manodopera: '', oneri: '', totale: '', pctATI: '',
-        capitalizzazioni: '', importo: val, societa,
-        stato: buMismatch ? 'BU da verificare' : (!bu || !cls.service ? 'da rivedere' : ''),
-      },
-      matchNote: [
-        db.capexProjectDB?.[pid]?.societa ? `Società da anagrafica CapEx (${societa})` : 'Società: Civismart (commessa FV senza anagrafica)',
-        cls.source ? `classificazione: ${cls.source}` : null,
-        buNote && !buMismatch ? buNote : null,
-      ].filter(Boolean).join(' · '),
-    });
-  }
-  for (const item of fvComputed) emitFVRow(item, 'diretti', item.agg.diretti);
-  for (const item of fvComputed) emitFVRow(item, 'indiretti', item.agg.indiretti);
-
-  // ---- capitalizzazioni CVS + SPVs: key = (ProjectID, ActivityCode), sum duplicates ----
-  function processCS(rows, aiCol, ajCol) {
-    const agg = {};
-    for (let i = 5; i < rows.length; i++) {
-      const row = rows[i];
-      if (!row) continue;
-      const pid = row[1];
-      if (!pid) continue;
-      const act = row[0];
-      const key = pid + '\u0001' + act;
-      if (!agg[key]) agg[key] = { pid, act, ai: 0, aj: row[ajCol], comuneRaw: row[3], dettaglio: row[4] };
-      agg[key].ai += (row[aiCol] || 0);
-    }
-    return agg;
-  }
-  const csEntries = enriched
-    ? [...Object.values(processCS(sheetRows(wb, cvsSheetName), 13, 14)),
-       ...Object.values(processCS(sheetRows(wb, spvSheetName), 12, 13))]
-    : Object.values(rawBuilt.csAgg);
-
-  for (const agg of csEntries) {
-    const cls = classifyCapexProject(agg.pid, db);
-    const { comune, bu, comuneSource, buSource } = resolveComune(agg.comuneRaw, agg.pid);
-    const hist = db.capexProjectDB && db.capexProjectDB[agg.pid];
-
-    // history (DB commesse) wins over the raw file when the two disagree
-    let societa = agg.aj;
-    const notes = [];
-    if (hist && hist.societa && agg.aj && hist.societa !== agg.aj) {
-      societa = hist.societa;
-      notes.push(`Società da storico ("${hist.societa}"); il file grezzo riporta "${agg.aj}"`);
-    } else if (!societa) {
-      // the raw export carries no company: take it from the DB commesse
-      if (hist && hist.societa) {
-        societa = hist.societa;
-        notes.push('Società dal DB commesse (non presente nel file grezzo)');
+      const capVal = cap >= 0
+        ? cxNum(row[cap])
+        : cxNum(row[tot]) * (ati >= 0 && typeof row[ati] === 'number' ? row[ati] : 1);
+      let v, ind = 0;
+      if (kind === 'fv') {
+        v = capVal;
+        ind = dI >= 0 ? cxNum(row[dI]) : capI >= 0 ? cxNum(row[capI]) - capVal : capVal * rate;
+      } else if (kind === 'cvs') {
+        v = capI >= 0 ? cxNum(row[capI]) : capVal * (1 + rate);
       } else {
-        // nessuno storico e nessun dato nel file grezzo: default silenzioso,
-        // nessuna segnalazione per revisione (vedi sopra).
-        societa = 'Civismart';
+        v = capVal;
+      }
+
+      let o = out.get(p);
+      if (!o) {
+        o = {
+          pid: p, val: 0, ind: 0, n: 0, acts: new Map(), sheet: T.sheet, kind,
+          name: nm >= 0 ? row[nm] : null, comune: cm >= 0 ? row[cm] : null,
+          dett: dt >= 0 ? row[dt] : null, sub: sb >= 0 ? row[sb] : null,
+        };
+        out.set(p, o);
+      }
+      o.val += v; o.ind += ind; o.n++;
+      const a = act >= 0 && !cxBlank(row[act]) ? String(row[act]).trim() : '';
+      o.acts.set(a, (o.acts.get(a) || 0) + v);
+      if (cxBlank(o.comune) && cm >= 0) o.comune = row[cm];
+      if (cxBlank(o.dett) && dt >= 0) o.dett = row[dt];
+      if (cxBlank(o.name) && nm >= 0) o.name = row[nm];
+      if (cxBlank(o.sub) && sb >= 0) o.sub = row[sb];
+    }
+    return out;
+  }
+  const fv = aggregate(fvT, 'fv'), cvs = aggregate(cvT, 'cvs'), spv = aggregate(spT, 'spv');
+  for (const x of [fv, cvs, spv]) if (x.error) return { error: x.error };
+  const cap = new Map(cvs);
+  for (const [p, o] of spv) {
+    if (cap.has(p)) { const c = cap.get(p); c.val += o.val; c.both = true; } else cap.set(p, o);
+  }
+
+  /* --- Elab 3 notes ("Lost" ...), only to explain projects that disappeared --- */
+  const elabNotes = new Map();
+  const e3 = capexSheetTable(wb, ['Elab 3']);
+  if (e3 && !e3.error) {
+    const pc = e3.col('project id'), nc = e3.col('note');
+    if (pc >= 0 && nc >= 0) {
+      for (let i = e3.h + 1; i < e3.rows.length; i++) {
+        const r = e3.rows[i];
+        if (!r || cxBlank(r[pc]) || cxBlank(r[nc])) continue;
+        const p = String(r[pc]).trim();
+        if (!elabNotes.has(p)) elabNotes.set(p, new Set());
+        elabNotes.get(p).add(String(r[nc]).trim());
       }
     }
+  }
+  const noteOf = (p) => elabNotes.has(p) ? ` Nota in Elab 3: “${[...elabNotes.get(p)].join(', ')}”.` : '';
 
-    // same cadastral cross-check as CVS BU: fill a missing BU from the code in the
-    // Project ID, and report a mismatch with the recorded one rather than hiding it
-    const cad = lookupCadastral(agg.pid, db);
-    let buFinal = bu;
-    let buMismatch = false;
-    if (!buFinal && cad && cad.bu) {
-      buFinal = cad.bu;
-      notes.push(`BU dedotta dal codice catastale ${cad.code} (${cad.comune}) contenuto nel Project ID`);
-    } else if (buFinal && cad && cad.bu && cad.bu !== buFinal) {
-      buMismatch = true;
-      notes.push(`BU DA VERIFICARE: nel DB commesse è "${buFinal}", ma il codice catastale ${cad.code} corrisponde a ${cad.comune} → "${cad.bu}". Valore tenuto: quello del DB commesse.`);
+  /* --- comune / BU of a new project, with the same precedence as the rest of the app --- */
+  const SRC_FROM = {
+    'anagrafica CVS BU': 'dall’anagrafica CVS BU',
+    'storico CapEx': 'dallo storico CapEx',
+    'nome ripulito dal DB': 'dal nome ripulito del DB',
+  };
+  function geo(raw, p) {
+    const M = db.cvsBuProjectDB && db.cvsBuProjectDB[p];
+    let comune, bu, src;
+    if (M && M.comune) {
+      comune = M.comune; bu = M.bu || db.comuneToBU[M.comune] || null; src = 'anagrafica CVS BU';
+    } else {
+      const b = db.comuneCleanDB && db.comuneCleanDB[raw];
+      if (b) { comune = b; bu = db.comuneToBU[b] || null; src = 'storico CapEx'; }
+      else {
+        comune = stripComuneDiPrefix(String(raw || '').split(' - ')[0]);
+        bu = db.comuneToBU[comune] || null; src = 'nome ripulito dal DB';
+      }
     }
-
-    // Commesse assenti dall'anagrafica CapEx non vengono più segnalate per
-    // revisione: % ATI resta assunta a 1 e Società a "Civismart" (vedi capexFromRaw),
-    // silenziosamente, su richiesta esplicita.
-    const flagged = !buFinal || !cls.service || buMismatch;
-    const reasons = [];
-    if (!cls.service) reasons.push(`segmenti del Project ID "${agg.pid}" non riconosciuti — Tipo servizio/contratto da inserire a mano`);
-    if (!buFinal) reasons.push('BU non determinabile per questo comune/cliente');
-    if (buMismatch) reasons.push(notes[notes.length - 1]);
-
-    results.push({
-      key: nextKey(), status: flagged ? 'flag' : 'auto',
-      reason: reasons.join(' · ') || null,
-      fields: {
-        sino: '', chiave: '', projectId: agg.pid, comuneRaw: agg.comuneRaw, comuneClean: comune, bu: buFinal || '?',
-        service: cls.service || '?', contract: cls.contract || '?', dettaglio: agg.dettaglio,
-        activityCode: agg.act, materiali: '', servizi: '', manodopera: '', oneri: '', totale: '', pctATI: '',
-        capitalizzazioni: '', importo: agg.ai, societa,
-        stato: buMismatch ? 'BU da verificare' : (flagged ? 'da rivedere' : ''),
-      },
-      matchNote: [
-        `Comune: ${comuneSource}`,
-        buSource ? `BU: ${buSource}` : null,
-        cls.source ? `classificazione: ${cls.source}` : null,
-        ...notes,
-      ].filter(Boolean).join(' · '),
-    });
+    const k = lookupCadastral(p, db);
+    let note = null;
+    if (!bu && k && k.bu) {
+      bu = k.bu;
+      note = `BU dedotta dal codice catastale ${k.code} (${k.comune})`;
+    } else if (bu && k && k.bu && k.bu !== bu) {
+      note = `BU da verificare: “${bu}” ${SRC_FROM[src]}, ma il codice catastale ${k.code} (${k.comune}) dà “${k.bu}”`;
+    }
+    return { comune, bu, src, note };
   }
 
-  return {
-    results,
-    columns: [
-      { key: 'sino', label: 'Sì/No (R)' },
-      { key: 'chiave', label: 'Chiave (S)' },
-      { key: 'projectId', label: 'Project ID (T)' },
-      { key: 'comuneRaw', label: 'Comune (U)' },
-      { key: 'comuneClean', label: 'Comune (V)' },
-      { key: 'bu', label: 'BU (W)' },
-      { key: 'service', label: 'Type of service (X)' },
-      { key: 'contract', label: 'Type of Contract (Y)' },
-      { key: 'dettaglio', label: 'Dettaglio commessa (Z)' },
-      { key: 'activityCode', label: 'Activity Code (AA)' },
-      { key: 'materiali', label: '04 - Materiali (AB)' },
-      { key: 'servizi', label: '02 - Servizi (AC)' },
-      { key: 'manodopera', label: '03 - Manodopera (AD)' },
-      { key: 'oneri', label: '01 - Oneri (AE)' },
-      { key: 'totale', label: 'Totale (AF)' },
-      { key: 'pctATI', label: '% ATI (AG)' },
-      { key: 'capitalizzazioni', label: 'Capitalizzazioni (AH)' },
-      { key: 'importo', label: 'Capitalizzazione + Costi indiretti (AI)', numeric: true },
-      { key: 'societa', label: 'Società (AJ)' },
-      // kept last on purpose: R:AJ stay contiguous for a straight paste into the sheet
-      { key: 'stato', label: 'Stato' },
-      { key: 'nota', label: 'Nota' },
-    ],
-    newEntries: { comuni: [...newComuni] },
+  /* --- rows of last month's table, same order --- */
+  const basePids = new Set();
+  const seq = base.rows.map(x => {
+    const v = x.v;
+    const pid = cxBlank(v[2]) ? null : String(v[2]).trim();
+    const u = norm(v[3]);
+    const kind = !pid ? 'm' : u === 'diretti' ? 'd' : u === 'indiretti' ? 'i' : 'c';
+    if (pid) basePids.add(pid);
+    return { ...x, pid, kind };
+  });
+  let lastD = -1, lastI = -1;
+  seq.forEach((x, i) => { if (x.kind === 'd') lastD = i; if (x.kind === 'i') lastI = i; });
+
+  const mk = (f, status, reason, matchNote, xl) => ({
+    key: nextKey(), status, reason: reason || null, matchNote: matchNote || null, fields: f, xl,
+  });
+  const fromBase = (v) => {
+    const f = {};
+    CX_KEYS.forEach((k, i) => {
+      const x = v[i];
+      f[k] = typeof x === 'number' ? cxR6(x) : (x ?? (CX_NUMERIC.has(k) ? null : ''));
+    });
+    f.sino = ''; // the Reporting's own "già Presente / non Presente" formula
+    f.chiave = f.projectId || '';
+    return f;
   };
+
+  const rows = [];
+  const usedCap = new Map();
+  for (const x of seq) {
+    const f = fromBase(x.v);
+    const pAI = typeof x.v[17] === 'number' ? cxR6(x.v[17]) : 0;
+    const pAF = typeof x.v[14] === 'number' ? cxR6(x.v[14]) : 0;
+    const pAdj = cxR6(cxNum(x.v[15]) + cxNum(x.v[16]));
+    f.prev = pAI;
+
+    if (x.kind === 'm') {
+      f.delta = 0;
+      rows.push({ base: x, item: mk(f, 'flag',
+        `Riga senza Project ID (inserita a mano): riportato il valore ${W} (${cxEur(pAI)} €). Aggiornala se è cambiata.`,
+        null, { kind: 'm' }) });
+      continue;
+    }
+
+    if (x.kind === 'd' || x.kind === 'i') {
+      const o = fv.get(x.pid);
+      const reasons = [], notes = [];
+      let st = 'auto';
+      if (x.kind === 'd') {
+        const af = o ? cxR6(o.val) : 0;
+        f.totale = af; f.adj1 = null; f.adj2 = null; f.importo = af;
+        if (!o && pAF !== 0) {
+          st = 'flag';
+          reasons.push(`Commessa FV presente ${W} (Totale ${cxEur(pAF)} €) ma non più nel foglio Fotovoltaico: messo 0.`);
+        }
+        if (o && af < pAF - 1) {
+          st = 'anomaly';
+          reasons.push(`Totale in calo ${V}: ${cxEur(pAF)} → ${cxEur(af)} €.`);
+        }
+        if (pAdj) {
+          if (st === 'auto') st = 'flag';
+          reasons.push(`${Wc} c’era una rettifica manuale in Adj.1/Adj.2 (${cxEur(pAdj)} €) per quadrare con lo Stato Patrimoniale: non l’ho riportata. Rimettila in AG/AH se serve ancora.` +
+            (o && Math.abs(af - (pAF + pAdj)) < 1 ? ' Il nuovo Totale è uguale a Totale + rettifica del mese prima: probabilmente non serve più.' : ''));
+        }
+        if (!o && pAF === 0) notes.push('Non presente nel foglio Fotovoltaico (0 anche nel mese prima).');
+        if (o) notes.push(`Foglio Fotovoltaico: ${nR(o.n)}, somma di “Capitalizzazioni”.`);
+        rows.push({ base: x, item: mk(f, st, reasons.join(' '), notes.join(' '), { kind: 'd', ai: 'sum' }) });
+      } else {
+        const ai = o ? cxR6(o.ind) : 0;
+        f.importo = ai; f.totale = null; f.adj1 = null; f.adj2 = null;
+        if (!o && pAI !== 0) {
+          st = 'flag';
+          reasons.push(`Presente ${W} (${cxEur(pAI)} €) ma non più nel foglio Fotovoltaico: messo 0.`);
+        }
+        if (o && ai < pAI - 1) {
+          st = 'anomaly';
+          reasons.push(`Indiretti in calo ${V}: ${cxEur(pAI)} → ${cxEur(ai)} €.`);
+        }
+        notes.push(o
+          ? `Foglio Fotovoltaico: somma di “Delta Indiretti” (${Math.round(rate * 100)}% del Totale).`
+          : 'Non presente nel foglio Fotovoltaico.');
+        rows.push({ base: x, item: mk(f, st, reasons.join(' '), notes.join(' '), { kind: 'i' }) });
+      }
+      continue;
+    }
+
+    /* capitalizzazioni CVS / SPV */
+    const o = cap.get(x.pid);
+    const reasons = [], notes = [];
+    let st = 'auto';
+    const pBase = cxR6(pAI - pAdj);
+    if (usedCap.has(x.pid)) {
+      f.importo = 0; f.adj1 = null; f.adj2 = null;
+      rows.push({ base: x, item: mk(f, 'flag',
+        `Project ID ripetuto: il valore è già sulla riga ${usedCap.get(x.pid)}. Qui messo 0.`, null, { kind: 'c' }) });
+      continue;
+    }
+    usedCap.set(x.pid, x.r);
+    const val = o ? cxR6(o.val) : 0;
+    f.importo = val; f.adj1 = null; f.adj2 = null;
+    const hadAdj = pAdj !== 0;
+    if (!o && pBase !== 0) {
+      st = 'flag';
+      reasons.push(`Presente ${W} (${cxEur(pBase)} €) ma non più nei fogli capitalizzazioni: messo 0.${noteOf(x.pid)}`);
+    }
+    if (o && val < pBase - 1) {
+      st = 'anomaly';
+      reasons.push(`Capitalizzazione YTD in calo ${V}: ${cxEur(pBase)} → ${cxEur(val)} € (Δ ${cxEur(val - pBase)}).`);
+    }
+    if (hadAdj) {
+      if (st === 'auto') st = 'flag';
+      reasons.push(`${Wc} c’era una rettifica manuale in Adj.1/Adj.2 (${cxEur(pAdj)} €, per esempio un tappo): non l’ho riportata. Rimettila in AG/AH se serve ancora: AI la somma.`);
+    }
+    if (o && o.both) {
+      reasons.push('Commessa presente sia in capitalizzazioni CVS sia in SPVs: sommati i due importi.');
+      if (st === 'auto') st = 'flag';
+    }
+    notes.push(o
+      ? `${o.sheet}: ${nR(o.n)}, somma di “${o.kind === 'cvs' ? 'Capitalizzazione Costi indiretti' : 'Capitalizzazioni'}”.`
+      : `Non presente nei fogli capitalizzazioni${pBase === 0 ? ' (0 anche nel mese prima)' : ''}.`);
+    rows.push({ base: x, item: mk(f, st, reasons.join(' '), notes.join(' '), { kind: 'c', ai: hadAdj ? 'adj' : null, base: val }) });
+  }
+
+  /* --- new projects --- */
+  const sameSite = (a, b) => {
+    const c = cadastralCode(a), qa = a.split('-'), qb = b.split('-');
+    return a !== b && c !== null && cadastralCode(b) === c && qa[1] === qb[1] && qa[qa.length - 1] === qb[qb.length - 1];
+  };
+  const gone = seq.filter(x => x.kind === 'c' && !cap.has(x.pid)).map(x => x.pid);
+  const rowsOf = (k) => seq.filter(x => x.kind === k).map(x => x.r);
+  const dRows = rowsOf('d'), iRows = rowsOf('i');
+  const fixedRanges = dRows.length && iRows.length
+    ? `AI${dRows[0]}:AI${dRows[dRows.length - 1]}, AI${dRows[0]}:AI${iRows[iRows.length - 1]}, AI${iRows[0]}:…`
+    : 'quelli dei controlli sopra la tabella';
+
+  const newD = [], newI = [], newC = [];
+  for (const [p, o] of fv) {
+    if (basePids.has(p)) continue;
+    const cls = classifyCapexProject(p, db);
+    const g = geo(String(o.name || '').split(':')[0], p);
+    const soc = db.capexProjectDB?.[p]?.societa || 'Civismart';
+    const common = {
+      sino: '', chiave: p, projectId: p, comuneClean: g.comune, bu: g.bu || '?',
+      service: cls.service || 'Photovoltaic', contract: cls.contract || 'Photovoltaic', dettaglio: o.name || '',
+      activityCode: '', materiali: '', servizi: '', manodopera: '', oneri: '', societa: soc, prev: 0,
+    };
+    const why = `Commessa FV nuova (non c’era ${W}): controlla Comune, BU e Società (“${soc}”). ` +
+      `La tabella si allunga di una riga nel blocco diretti e una negli indiretti: le righe sotto scendono, ricontrolla i range fissi (es. ${fixedRanges}).` +
+      (g.note ? ` ${g.note}.` : '');
+    newD.push(mk({ ...common, comuneRaw: 'diretti', totale: cxR6(o.val), adj1: null, adj2: null, importo: cxR6(o.val), delta: cxR6(o.val) },
+      'flag', why, `Comune: ${g.src}`, { kind: 'd', ai: 'sum', isNew: true }));
+    newI.push(mk({ ...common, comuneRaw: 'indiretti', totale: null, adj1: null, adj2: null, importo: cxR6(o.ind), delta: cxR6(o.ind) },
+      'flag', 'Commessa FV nuova: vedi la riga nel blocco diretti.', null, { kind: 'i', isNew: true }));
+  }
+  for (const [p, o] of cap) {
+    if (basePids.has(p)) continue;
+    const cls = classifyCapexProject(p, db);
+    const g = geo(o.comune, p);
+    const reg = db.capexProjectDB && db.capexProjectDB[p];
+    const acts = [...o.acts.entries()].filter(([a]) => a).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+    const act = acts.length ? acts[0][0] : '';
+    let soc, socNote;
+    if (reg && reg.societa) {
+      soc = reg.societa; socNote = `Società dall’anagrafica CapEx (“${soc}”)`;
+    } else if (o.kind === 'spv') {
+      soc = String(o.sub || '').trim() || 'CiviSmart S.p.A.';
+      socNote = `Società = società veicolo dal foglio SPVs (“${soc}”), come le ultime SPV aggiunte`;
+    } else {
+      soc = 'Civismart';
+      socNote = `Società = “Civismart” come le righe CVS storiche (nel DB: “${String(o.sub || '').trim() || 'CiviSmart S.p.A.'}”)`;
+    }
+    const twins = gone.filter(gp => sameSite(p, gp));
+    const bits = [`Commessa nuova (${o.kind === 'spv' ? 'SPV' : 'CVS'}), non c’era ${W}: controlla Comune, BU e Società.`];
+    if (g.note) bits.push(`${g.note}.`);
+    if (twins.length) bits.push(`Potrebbe sostituire ${twins.join(', ')} (stesso codice catastale, sparito dal DB).`);
+    if (acts.length > 1) bits.push(`Activity code nel DB: ${acts.map(([a, v]) => `${a} (${cxEur(v)})`).join(', ')}; messo quello con l’importo maggiore.`);
+    const f = {
+      sino: '', chiave: p, projectId: p, comuneRaw: o.comune ?? '', comuneClean: g.comune, bu: g.bu || '?',
+      service: cls.service || '?', contract: cls.contract || '?', dettaglio: o.dett ?? '', activityCode: act,
+      materiali: '', servizi: '', manodopera: '', oneri: '', totale: null, adj1: null, adj2: null,
+      importo: cxR6(o.val), societa: soc, prev: 0, delta: cxR6(o.val),
+    };
+    newC.push(mk(f, 'flag', bits.join(' '),
+      [`Comune: ${g.src}`, socNote, cls.source ? `classificazione: ${cls.source}` : null].filter(Boolean).join(' · '),
+      { kind: 'c', isNew: true, base: cxR6(o.val) }));
+  }
+  // a project gone from the DB and a new one on the same site point at each other
+  for (const r of rows) {
+    const x = r.base;
+    if (x.kind !== 'c' || cap.has(x.pid) || !r.item.reason) continue;
+    const twins = newC.map(n => n.fields.projectId).filter(p => sameSite(x.pid, p));
+    if (twins.length) r.item.reason += ` Forse sostituita da ${twins.join(', ')} (nuova, stesso codice catastale).`;
+  }
+
+  /* --- final order and Excel rows --- */
+  const out = [];
+  let shift = 0, prevRow = base.headerRow;
+  const place = (item, baseRow) => {
+    let r;
+    if (baseRow !== null) {
+      r = baseRow + shift;
+      if (r <= prevRow) { shift += prevRow + 1 - r; r = prevRow + 1; }
+    } else {
+      r = prevRow + 1; shift++;
+    }
+    prevRow = r; item.xl.row = r; item.fields.riga = r; out.push(item);
+  };
+  seq.forEach((x, i) => {
+    place(rows[i].item, x.r);
+    if (i === lastD) newD.forEach(n => place(n, null));
+    if (i === lastI) newI.forEach(n => place(n, null));
+  });
+  if (lastD < 0) newD.forEach(n => place(n, null));
+  if (lastI < 0) newI.forEach(n => place(n, null));
+  newC.forEach(n => place(n, null));
+  for (const it of out) {
+    if (it.fields.delta === undefined) it.fields.delta = cxR6(cxNum(it.fields.importo) - cxNum(it.fields.prev));
+  }
+
+  /* --- totals for the sheet's own checks --- */
+  const sum = (kinds) => cxR6(out.filter(it => kinds.includes(it.xl.kind)).reduce((a, it) => a + cxNum(it.fields.importo), 0));
+  const prevSum = (kinds, k) => cxR6(seq.filter(x => kinds.includes(x.kind)).reduce((a, x) => a + cxNum(x.v[k]), 0));
+  const adjRows = seq.filter(x => cxNum(x.v[15]) + cxNum(x.v[16]) !== 0).length;
+  const totals = {
+    fv: sum(['d', 'i']), ce: sum(['i', 'c']),
+    prevFv: prevSum(['d', 'i'], 17), prevCe: prevSum(['i', 'c'], 17),
+    prevAdj: cxR6(seq.reduce((a, x) => a + cxNum(x.v[15]) + cxNum(x.v[16]), 0)), prevAdjRows: adjRows,
+    dir: sum(['d']), ind: sum(['i']), cap: sum(['c']),
+    nNew: newD.length + newC.length,
+    nGone: rows.filter(r => r.base.kind === 'c' && r.item.fields.prev && !cap.has(r.base.pid)).length,
+    shifted: newD.length + newI.length > 0,
+    firstRow: base.headerRow + 1, lastRow: prevRow, headerRow: base.headerRow,
+    base: base.source, baseOf: base.of, baseWhen: base.when, embedded: !!base.embedded,
+    sheets: [fvT.sheet, cvT.sheet, spT.sheet], rate,
+  };
+  const C = (key, label, x) => ({ key, label, ...x });
+  return {
+    results: out, totals, xl: { headerRow: base.headerRow },
+    columns: [
+      C('riga', 'Riga', { reviewOnly: true }),
+      ...CX_KEYS.map((k, i) => C(k, `${CX_HEAD[i]} (${CX_COLS[i]})`, { exportLabel: CX_HEAD[i], numeric: CX_NUMERIC.has(k) })),
+      C('prev', base.col, { numeric: true, reviewOnly: true }),
+      C('delta', 'Δ AI', { numeric: true, reviewOnly: true }),
+    ],
+  };
+}
+
+// consecutive Excel rows as "798-812", gaps as separate pieces
+function cxRowRanges(rows) {
+  const s = [...rows].sort((a, b) => a - b), parts = [];
+  for (let i = 0; i < s.length; i++) {
+    let j = i;
+    while (j + 1 < s.length && s[j + 1] === s[j] + 1) j++;
+    parts.push(i === j ? `${s[i]}` : `${s[i]}-${s[j]}`);
+    i = j;
+  }
+  return parts.join(', ');
+}
+
+/* Excel ready to paste: the same cells as the Reporting (R{header}:AJ…), with the
+   formulas of S and AI written alongside their computed values, plus a "Da
+   rivedere" sheet and a "Controlli" sheet with the totals as formulas. */
+function buildCapexXlsx(C) {
+  const T = C.totals, H = C.xl.headerRow;
+  const ws = {};
+  let last = H;
+  CX_COLS.forEach((L, i) => { ws[L + H] = { t: 's', v: CX_HEAD[i] }; });
+  for (const it of C.results) {
+    const r = it.xl.row, f = it.fields;
+    last = Math.max(last, r);
+    CX_KEYS.forEach((k, i) => {
+      const a = CX_COLS[i] + r, v = f[k];
+      if (k === 'sino') return;
+      if (k === 'chiave') {
+        if (f.projectId) ws[a] = { t: 's', v: String(f.projectId), f: `+T${r}` };
+        return;
+      }
+      if (k === 'importo') {
+        const n = cxNum(v);
+        if (it.xl.ai === 'sum') ws[a] = { t: 'n', v: n, f: `+SUM(AF${r}:AH${r})`, z: CX_EUR_FORMAT };
+        else if (it.xl.ai === 'adj') ws[a] = { t: 'n', v: n, f: `${it.xl.base}+AG${r}+AH${r}`, z: CX_EUR_FORMAT };
+        else ws[a] = { t: 'n', v: n, z: CX_EUR_FORMAT };
+        return;
+      }
+      if (CX_NUMERIC.has(k)) {
+        if (typeof v === 'number') ws[a] = { t: 'n', v, z: CX_EUR_FORMAT };
+        return;
+      }
+      if (typeof v === 'number') ws[a] = { t: 'n', v };
+      else if (!cxBlank(v)) ws[a] = { t: 's', v: String(v) };
+    });
+  }
+  ws['!ref'] = `R${H}:AJ${last}`;
+  const widths = { R: 12, S: 18, T: 18, U: 34, V: 24, W: 11, X: 22, Y: 16, Z: 44, AA: 26, AB: 12, AC: 12, AD: 12, AE: 12, AF: 16, AG: 14, AH: 14, AI: 18, AJ: 24 };
+  ws['!cols'] = Array.from({ length: 36 }, (_, i) => ({ wch: i < 17 ? 3 : widths[CX_COLS[i - 17]] || 12 }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'CapEx');
+
+  const STATUS = { auto: 'ok', flag: 'da rivedere', anomaly: 'anomalia' };
+  const rev = [['Riga', 'Project ID', 'Stato', 'AI nuovo', 'AI mese prec.', 'Δ', 'Nota']];
+  for (const it of C.results) {
+    if (it.status === 'auto') continue;
+    rev.push([it.xl.row, it.fields.projectId || '(riga manuale)', STATUS[it.status],
+      cxNum(it.fields.importo), cxNum(it.fields.prev), cxNum(it.fields.delta), it.reason || '']);
+  }
+  const ws2 = XLSX.utils.aoa_to_sheet(rev);
+  ws2['!cols'] = [{ wch: 7 }, { wch: 18 }, { wch: 12 }, { wch: 16 }, { wch: 16 }, { wch: 14 }, { wch: 110 }];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Da rivedere');
+
+  const rowsOfKind = (kinds) => C.results.filter(x => kinds.includes(x.xl.kind)).map(x => x.xl.row);
+  // a SUM formula only when the block is one contiguous range, otherwise the plain value
+  const sumCell = (kinds, v) => {
+    const r = rowsOfKind(kinds);
+    if (r.length) {
+      const a = Math.min(...r), b = Math.max(...r);
+      if (b - a + 1 === r.length) return { t: 'n', v, f: `SUM(CapEx!AI${a}:AI${b})`, z: CX_EUR_FORMAT };
+    }
+    return { t: 'n', v, z: CX_EUR_FORMAT };
+  };
+  const num = (v) => ({ t: 'n', v, z: CX_EUR_FORMAT });
+  const diff = (r, v) => ({ t: 'n', v: cxR6(v), f: `B${r}-C${r}`, z: CX_EUR_FORMAT });
+  const dataRows = rowsOfKind(['d', 'i', 'c']);
+  const adj = dataRows.length
+    ? { t: 'n', v: 0, f: `SUM(CapEx!AG${Math.min(...dataRows)}:AH${Math.max(...dataRows)})`, z: CX_EUR_FORMAT }
+    : num(0);
+
+  const newRows = C.results.filter(x => x.xl.isNew).map(x => x.xl.row);
+  const newCvs = C.results.some(x => x.xl.isNew && x.xl.kind === 'c' && x.fields.societa === 'Civismart');
+  const manual = C.results.filter(x => x.xl.kind === 'm');
+  const baseRef = T.embedded ? `${T.baseOf} salvata nell’app` : `del Reporting caricato (${T.base})`;
+  const dbName = C.dbFileName || 'DB commesse';
+  const tot = [
+    ['Controllo', 'Nuovo (da questo file)', 'Mese prima', 'Differenza', 'Con cosa confrontarlo nel Reporting'],
+    ['FV diretti + indiretti', sumCell(['d', 'i'], T.fv), num(T.prevFv), diff(2, T.fv - T.prevFv), 'CapEx!AI483 “FV Capex Stato Patrimoniale” (Check FV in AI484)'],
+    ['Indiretti FV + capitalizzazioni CVS/SPV', sumCell(['i', 'c'], T.ce), num(T.prevCe), diff(3, T.ce - T.prevCe), '“Costruzioni interne” del BDV (Check CE in AI481:AI482)'],
+    ['di cui FV diretti', sumCell(['d'], T.dir), '', '', ''],
+    ['di cui FV indiretti', sumCell(['i'], T.ind), '', '', ''],
+    ['di cui capitalizzazioni CVS/SPV', sumCell(['c'], T.cap), '', '', ''],
+    ['Rettifiche manuali Adj.1/Adj.2', adj, num(T.prevAdj), diff(7, -T.prevAdj), 'quelle del mese prima non sono riportate: rimettile in AG/AH se servono ancora'],
+    [],
+    ['Base righe e valori del mese prima', T.base],
+    ['Tabella', `R${T.headerRow}:AJ${T.lastRow}`],
+    [],
+    ['Come è costruita la tabella'],
+    ['Fonte', `${dbName}: fogli ${T.sheets.join(', ')}. Ordine righe e anagrafiche dalla tabella CapEx ${baseRef}.`],
+    ['FV diretti', 'AF = somma di “Capitalizzazioni” del foglio Fotovoltaico per Project ID; AI = AF + AG + AH.'],
+    ['FV indiretti', `AI = somma di “Delta Indiretti” (${Math.round(T.rate * 100)}% di AF).`],
+    ['Capitalizzazioni CVS', 'AI = somma di “Capitalizzazione Costi indiretti”.'],
+    ['Capitalizzazioni SPV', 'AI = somma di “Capitalizzazioni”.'],
+    ['Adj.1 / Adj.2', T.prevAdjRows
+      ? `Lasciate vuote: le rettifiche ${T.baseOf} (${T.prevAdjRows} ${T.prevAdjRows === 1 ? 'riga' : 'righe'}, ${cxEur(T.prevAdj)} € in tutto) vanno rimesse solo se servono ancora. Elenco nel foglio “Da rivedere”.`
+      : `Lasciate vuote: nella tabella ${T.baseOf} non c’erano rettifiche.`],
+    ['Commesse sparite', `Presenti ${T.baseWhen} ma non più nei fogli: messe a 0, nella stessa riga.`],
+    ['Commesse nuove', newRows.length
+      ? `Righe ${cxRowRanges(newRows)}.${newCvs ? ' Società “Civismart” per le CVS, come le righe storiche, così entrano nel Liquidity FCT.' : ''}`
+      : 'Nessuna.'],
+    ...manual.map(m => [
+      `Riga ${m.xl.row}${[m.fields.comuneClean, m.fields.societa].filter(v => !cxBlank(v)).length ? ` (${[m.fields.comuneClean, m.fields.societa].filter(v => !cxBlank(v)).join(', ')})` : ''}`,
+      `Riga manuale senza Project ID: riportato il valore ${T.baseOf}.`,
+    ]),
+    ['Come incollare', `Copia S${T.firstRow}:AJ${T.lastRow}, nel Reporting seleziona CapEx!S${T.firstRow} e usa Incolla speciale › Formule. Poi estendi la formula di R fino alla riga ${T.lastRow}.`],
+    ['Mese prima (colonna C)', `Valori della tabella ${T.baseOf}, non formule.`],
+  ];
+  const ws3 = XLSX.utils.aoa_to_sheet(tot);
+  ws3['!cols'] = [{ wch: 40 }, { wch: 22 }, { wch: 18 }, { wch: 16 }, { wch: 70 }];
+  XLSX.utils.book_append_sheet(wb, ws3, 'Controlli');
+  return XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+}
+
+async function exportCapexXlsx(C) {
+  const T = C.totals;
+  const name = `CapEx_R${T.headerRow}-AJ${T.lastRow}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+  const blob = new Blob([buildCapexXlsx(C)], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  await saveFile(name, blob);
+}
+
+// Last month's table from the optional Consolidated Reporting. The file is large
+// (6-7 MB, sheets a million rows long): only its CapEx sheet is parsed.
+async function readCapexBaseFile(file) {
+  const buf = await file.arrayBuffer();
+  const names = XLSX.read(buf, { type: 'array', bookSheets: true }).SheetNames || [];
+  const sn = findSheet({ SheetNames: names }, ['CapEx']) || 'CapEx';
+  const wb = XLSX.read(buf, { type: 'array', sheets: [sn], raw: true, cellDates: false });
+  return readCapexBase(wb, file.name);
 }
 
 /* ============================================================================
@@ -1340,8 +1721,17 @@ function mapCommesseColumns(rows) {
       else if (h === 'importo') {
         const cat = AMOUNT_CATEGORIES[(above[c] ?? '').toString().trim()];
         if (cat) map.amounts[cat] = c;
+      } else {
+        // amount columns headed by the category itself ("05 - Ricavi"), as in
+        // the enriched sheets, rather than "Importo" under the category
+        const cat = AMOUNT_CATEGORIES[(row[c] ?? '').toString().trim()];
+        if (cat && map.amounts[cat] === undefined) map.amounts[cat] = c;
       }
     }
+    // The October DB commesse dropped the original activity code column from
+    // Elab 3 and kept only "NEW Activity Code + Note" (column B): that column then
+    // is the activity code too, instead of stopping on a missing header.
+    if (map.act < 0 && map.newact >= 0) map.act = map.newact;
     if (map.pid >= 0 && map.act >= 0 && map.amounts.ricavi !== undefined) return map;
   }
   return null;
@@ -1762,7 +2152,7 @@ function useDatabase() {
    UI PRIMITIVES
    ============================================================================ */
 
-function StatusPill({ status }) {
+function StatusPill({ status, title }) {
   const map = {
     auto: { icon: Check, label: 'auto', cls: 'pill-auto' },
     flag: { icon: AlertTriangle, label: 'da rivedere', cls: 'pill-flag' },
@@ -1771,14 +2161,52 @@ function StatusPill({ status }) {
   const m = map[status] || map.auto;
   const Icon = m.icon;
   return (
-    <span className={`pill ${m.cls}`}>
+    <span className={`pill ${m.cls}`} title={title || undefined}>
       <Icon size={12} strokeWidth={2.5} />
       {m.label}
     </span>
   );
 }
 
-function UploadSlot({ label, hint, onFile, fileName, accept }) {
+// CapEx: the two totals the Reporting checks, new (without Adj.) against last month
+function CapexChecks({ C }) {
+  const T = C.totals;
+  const rowsOf = (k) => C.results.filter(x => x.xl.kind === k).map(x => x.xl.row);
+  const di = [...rowsOf('d'), ...rowsOf('i')], ic = [...rowsOf('i'), ...rowsOf('c')];
+  const range = (r) => r.length ? `AI${Math.min(...r)}:AI${Math.max(...r)}` : 'nessuna riga';
+  const eur = (v) => `${fmtEUR(v)} €`;
+  const lines = [
+    { label: 'FV diretti + indiretti', rng: range(di), now: T.fv, prev: T.prevFv, to: 'FV Capex Stato Patrimoniale, AI483' },
+    { label: 'Indiretti FV + capitalizzazioni', rng: range(ic), now: T.ce, prev: T.prevCe, to: 'Costruzioni interne, AI481 e AI482' },
+  ];
+  return (
+    <section className="capex-checks" aria-label="Totali da confrontare con i controlli del foglio CapEx">
+      <div className="cx-row cx-head">
+        <span>Totali da confrontare con i controlli del foglio</span>
+        <span className="cx-n">nuovo, senza Adj.</span>
+        <span className="cx-n">mese prima</span>
+        <span className="cx-to">nel Reporting</span>
+      </div>
+      {lines.map(l => (
+        <div className="cx-row" key={l.label}>
+          <span className="cx-label">{l.label} <span className="cx-rng mono">{l.rng}</span></span>
+          <span className="cx-n mono" data-label="nuovo, senza Adj.">{eur(l.now)}</span>
+          <span className="cx-n cx-prev mono" data-label="mese prima">{eur(l.prev)}</span>
+          <span className="cx-to">{l.to}</span>
+        </div>
+      ))}
+      <p className="cx-how">
+        Righe {T.firstRow}–{T.lastRow}, base: {T.base}.
+        {T.prevAdj !== 0 && <> Le rettifiche del mese prima in Adj.1/Adj.2 ({eur(T.prevAdj)}) non sono riportate: sono elencate tra le righe da rivedere.</>}
+        {' '}Per incollare: Esporta Excel, copia S{T.firstRow}:AJ{T.lastRow}, nel Reporting seleziona CapEx!S{T.firstRow} e
+        usa Incolla speciale › Formule; poi estendi la formula di R fino alla riga {T.lastRow}.
+        {T.shifted && <> Ci sono commesse FV nuove: le righe sotto i blocchi FV scendono, ricontrolla i range fissi dei controlli.</>}
+      </p>
+    </section>
+  );
+}
+
+function UploadSlot({ label, hint, onFile, fileName, accept, onClear }) {
   const inputRef = useRef(null);
   const [dragOver, setDragOver] = useState(false);
 
@@ -1793,16 +2221,27 @@ function UploadSlot({ label, hint, onFile, fileName, accept }) {
       onDragLeave={() => setDragOver(false)}
       onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFiles(e.dataTransfer.files); }}
       onClick={() => inputRef.current?.click()}
+      onKeyDown={(e) => {
+        if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); inputRef.current?.click(); }
+      }}
+      role="button" tabIndex={0} aria-label={fileName ? `${label}: ${fileName}` : label}
     >
       <input
         ref={inputRef} type="file" accept={accept} style={{ display: 'none' }}
-        onChange={(e) => handleFiles(e.target.files)}
+        onChange={(e) => { handleFiles(e.target.files); e.target.value = ''; }}
       />
       {fileName ? (
         <>
           <FileSpreadsheet size={22} strokeWidth={1.6} />
+          <div className="upload-slot-name">{label}</div>
           <div className="upload-filename">{fileName}</div>
           <div className="upload-swap">clicca per sostituire</div>
+          {onClear && (
+            <button type="button" className="upload-clear" title="Togli il file"
+              onClick={(e) => { e.stopPropagation(); onClear(); }}>
+              <X size={13} /> togli
+            </button>
+          )}
         </>
       ) : (
         <>
@@ -1838,6 +2277,10 @@ export default function App() {
     setFiles(prev => ({ ...prev, [slot]: file }));
     setOutput(null); setError(null); setFilter(null);
   };
+  const clearFile = (slot) => () => {
+    setFiles(prev => { const next = { ...prev }; delete next[slot]; return next; });
+    setOutput(null); setError(null); setFilter(null);
+  };
 
   const canProcess = useMemo(() => {
     if (mode === 'bdv') return files.tb && files.pl;
@@ -1850,7 +2293,9 @@ export default function App() {
       let result;
       if (mode === 'capex') {
         const wb = await readWorkbookFromFile(files.main);
-        result = processCapEx(wb, db);
+        const base = files.prev ? await readCapexBaseFile(files.prev) : null;
+        result = processCapEx(wb, db, base);
+        if (!result.error) result.dbFileName = files.main.name;
       } else if (mode === 'bdv') {
         const wbTB = await readWorkbookFromFile(files.tb);
         const wbPL = await readWorkbookFromFile(files.pl);
@@ -1901,14 +2346,29 @@ export default function App() {
     return r.fields[key];
   };
 
-  const handleExport = () => {
+  // Review-only columns (CapEx: Riga, AI del mese prima, differenza) stay on screen:
+  // the export carries the sheet's own columns, under the sheet's own headers.
+  const handleExport = async () => {
     if (!output) return;
-    const columns = output.columns.map(c => ({
-      label: c.label,
+    const columns = output.columns.filter(c => !c.reviewOnly).map(c => ({
+      label: c.exportLabel || c.label,
       get: (r) => c.numeric ? fmtEURExport(cellValue(r, c.key)) : (cellValue(r, c.key) ?? ''),
     }));
     const csv = toCSV(output.results, columns);
-    downloadText(`${mode}_pulito_${new Date().toISOString().slice(0, 10)}.csv`, csv);
+    try {
+      await downloadText(`${mode}_pulito_${new Date().toISOString().slice(0, 10)}.csv`, csv);
+    } catch (e) {
+      setError(`Esportazione CSV non riuscita: ${e.message}`);
+    }
+  };
+
+  const handleExportXlsx = async () => {
+    if (!output) return;
+    try {
+      await exportCapexXlsx(output);
+    } catch (e) {
+      setError(`Esportazione Excel non riuscita: ${e.message}`);
+    }
   };
 
   return (
@@ -1975,7 +2435,15 @@ export default function App() {
               <UploadSlot label="Profit &amp; Loss per classe" hint="es. ProfitandLoss293.xls" accept={modeConfig.accept}
                 onFile={setFile('pl')} fileName={files.pl?.name} />
               <UploadSlot label="Bilancio De Giorgi (facoltativo)" hint="il file di mappatura con il bridge dei conti" accept=".xlsx,.xls"
-                onFile={setFile('dg')} fileName={files.dg?.name} />
+                onFile={setFile('dg')} fileName={files.dg?.name} onClear={clearFile('dg')} />
+            </div>
+          ) : mode === 'capex' ? (
+            <div className="upload-grid">
+              <UploadSlot label="DB commesse" hint="fogli Fotovoltaico, capitalizzazioni CVS e capitalizzazioni SPVs"
+                accept={modeConfig.accept} onFile={setFile('main')} fileName={files.main?.name} />
+              <UploadSlot label="Consolidated Reporting del mese prima (facoltativo)"
+                hint="riprendo righe e anagrafiche dal foglio CapEx; senza, uso la tabella di settembre salvata nell’app"
+                accept=".xlsx,.xlsm" onFile={setFile('prev')} fileName={files.prev?.name} onClear={clearFile('prev')} />
             </div>
           ) : (
             <UploadSlot label={modeConfig.fileHint} hint="trascina qui o clicca per scegliere" accept={modeConfig.accept}
@@ -2037,10 +2505,17 @@ export default function App() {
                 </button>
               )}
               <div className="summary-spacer" />
+              {mode === 'capex' && output.totals && (
+                <button className="export-btn export-primary" onClick={handleExportXlsx}>
+                  <FileSpreadsheet size={14} /> Esporta Excel
+                </button>
+              )}
               <button className="export-btn" onClick={handleExport}>
                 <Download size={14} /> Esporta CSV
               </button>
             </section>
+
+            {mode === 'capex' && output.totals && <CapexChecks C={output} />}
 
             <section className="table-wrap">
               <table>
@@ -2056,7 +2531,7 @@ export default function App() {
                 <tbody>
                   {visibleResults.map(r => (
                     <tr key={r.key} className={`row-${r.status}`}>
-                      <td className="col-status"><StatusPill status={r.status} /></td>
+                      <td className="col-status"><StatusPill status={r.status} title={r.reason || r.matchNote} /></td>
                       {output.columns.map(c => (
                         <td key={c.key} className={c.numeric ? 'col-numeric mono' : 'mono'}>
                           {c.numeric ? fmtEUR(cellValue(r, c.key)) : (cellValue(r, c.key) ?? '')}
@@ -2083,7 +2558,7 @@ export default function App() {
         {!output && !error && (
           <div className="empty-state">
             <Info size={18} />
-            <p>Carica {mode === 'bdv' ? 'i file grezzi (il bilancio De Giorgi è facoltativo: se lo aggiungi, l\'output riporta una colonna per CVS e una per De Giorgi)' : 'il file grezzo'} per iniziare. L'app applica le regole imparate insieme e segnala solo quello che ha davvero bisogno di una tua decisione.</p>
+            <p>{modeConfig.emptyHint} L’app applica le regole imparate insieme e segnala solo quello che ha davvero bisogno di una tua decisione.</p>
           </div>
         )}
       </main>
@@ -2100,6 +2575,11 @@ const FONT_IMPORT = `
 `;
 
 const STYLES = `
+/* Console layout: a navigation rail on the left, the working area on the right;
+   on narrow screens the rail becomes a band across the top. Dark-first palette
+   (blue-grey ink, cream text, amber for "da rivedere", sage for ok, terracotta
+   for anomalies, teal for references to the workbook), with a light variant
+   that follows the system setting or the viewer's explicit choice. */
 :root {
   --ink: #12161c;
   --panel: #1a2129;
@@ -2114,8 +2594,84 @@ const STYLES = `
   --signal-dim: #4a3f28;
   --alert: #c2634a;
   --alert-dim: #4a3229;
+  --alert-ink: #f0c4b8;
   --wire: #4a8fa8;
+  --signal-fill: #d9a548;
+  --signal-deep: #b8843a;
+  --on-signal: #1a1408;
+  --wire-wash: rgba(74, 143, 168, 0.06);
+  --signal-wash: rgba(217, 165, 72, 0.08);
+  --verified-ring: rgba(127, 166, 135, 0.18);
+  --signal-ring: rgba(217, 165, 72, 0.18);
+  --alert-ring: rgba(194, 99, 74, 0.18);
+  --row-hover: rgba(255, 255, 255, 0.025);
+  --row-flag: rgba(217, 165, 72, 0.04);
+  --row-anomaly: rgba(194, 99, 74, 0.06);
+  color-scheme: dark;
 }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --ink: #f3f5f4;
+    --panel: #e7ebea;
+    --panel-raised: #ffffff;
+    --line: #d0d8d6;
+    --paper: #1b2228;
+    --paper-dim: #36424b;
+    --mute: #63707b;
+    --verified: #2f6b3d;
+    --verified-dim: #dcebdf;
+    --signal: #8a5c12;
+    --signal-dim: #f5e7c8;
+    --alert: #a3402a;
+    --alert-dim: #f6ddd5;
+    --alert-ink: #7a2a18;
+    --wire: #2a6d86;
+    --signal-fill: #d9a548;
+    --signal-deep: #b8843a;
+    --on-signal: #1a1408;
+    --wire-wash: rgba(42, 109, 134, 0.06);
+    --signal-wash: rgba(217, 165, 72, 0.14);
+    --verified-ring: rgba(47, 107, 61, 0.2);
+    --signal-ring: rgba(138, 92, 18, 0.2);
+    --alert-ring: rgba(163, 64, 42, 0.2);
+    --row-hover: rgba(20, 40, 50, 0.035);
+    --row-flag: rgba(217, 165, 72, 0.09);
+    --row-anomaly: rgba(194, 99, 74, 0.08);
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --ink: #f3f5f4;
+  --panel: #e7ebea;
+  --panel-raised: #ffffff;
+  --line: #d0d8d6;
+  --paper: #1b2228;
+  --paper-dim: #36424b;
+  --mute: #63707b;
+  --verified: #2f6b3d;
+  --verified-dim: #dcebdf;
+  --signal: #8a5c12;
+  --signal-dim: #f5e7c8;
+  --alert: #a3402a;
+  --alert-dim: #f6ddd5;
+  --alert-ink: #7a2a18;
+  --wire: #2a6d86;
+  --signal-fill: #d9a548;
+  --signal-deep: #b8843a;
+  --on-signal: #1a1408;
+  --wire-wash: rgba(42, 109, 134, 0.06);
+  --signal-wash: rgba(217, 165, 72, 0.14);
+  --verified-ring: rgba(47, 107, 61, 0.2);
+  --signal-ring: rgba(138, 92, 18, 0.2);
+  --alert-ring: rgba(163, 64, 42, 0.2);
+  --row-hover: rgba(20, 40, 50, 0.035);
+  --row-flag: rgba(217, 165, 72, 0.09);
+  --row-anomaly: rgba(194, 99, 74, 0.08);
+  color-scheme: light;
+}
+
+html, body, #root { min-height: 100%; }
+body { margin: 0; background: var(--ink); color: var(--paper); }
 
 .app-root {
   display: flex;
@@ -2127,6 +2683,8 @@ const STYLES = `
 }
 
 .app-root .mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+.app-root button { font-family: 'Inter', ui-sans-serif, system-ui, sans-serif; }
+.app-root :focus-visible { outline: 2px solid var(--wire); outline-offset: 2px; }
 
 /* ---- Rail ---- */
 .rail {
@@ -2136,13 +2694,15 @@ const STYLES = `
   border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
-  padding: 20px 14px;
+  padding-block: 20px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: 14px;
 }
 .rail-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; padding: 0 4px; }
 .rail-brand-mark {
   width: 32px; height: 32px; border-radius: 7px;
-  background: linear-gradient(155deg, var(--signal), #b8843a);
-  color: #1a1408; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 12.5px;
+  background: linear-gradient(155deg, var(--signal-fill), var(--signal-deep));
+  color: var(--on-signal); font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 12.5px;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
@@ -2154,7 +2714,7 @@ const STYLES = `
   display: flex; align-items: center; gap: 10px;
   background: none; border: none; color: var(--mute);
   padding: 9px 11px; border-radius: 7px; text-align: left;
-  font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+  font-size: 13px; font-weight: 500;
   cursor: pointer; transition: background 0.15s, color 0.15s;
 }
 .rail-item:hover { background: var(--panel-raised); color: var(--paper); }
@@ -2169,37 +2729,49 @@ const STYLES = `
 .rail-db-stats span { font-family: 'IBM Plex Mono', monospace; color: var(--wire); font-weight: 500; margin-right: 4px; }
 
 /* ---- Main ---- */
-.main { flex: 1; padding: 28px 36px 40px; overflow-y: auto; max-width: 1180px; }
-.main-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 22px; }
-.main-header h1 { font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 600; margin: 0 0 3px; letter-spacing: -0.01em; }
+.main {
+  flex: 1; min-width: 0; max-width: 1180px;
+  padding-block: 28px 40px;
+  padding-left: 36px;
+  padding-right: max(36px, env(safe-area-inset-right, 0px));
+}
+.main-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 22px; }
+.main-header h1 { font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 600; margin: 0 0 3px; letter-spacing: -0.01em; text-wrap: balance; }
 .main-tagline { color: var(--mute); font-size: 13px; margin: 0; }
 .main-dest { text-align: right; }
 .main-dest-label { display: block; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--mute); margin-bottom: 3px; }
 .main-dest-value { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--wire); }
 
 .upload-section { display: flex; gap: 14px; align-items: stretch; margin-bottom: 22px; }
-.upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; flex: 1; }
+.upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; flex: 1; min-width: 0; }
 .upload-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
 
 .upload-slot {
-  flex: 1; min-height: 92px;
+  flex: 1; min-width: 0; min-height: 92px;
   border: 1.5px dashed var(--line); border-radius: 10px;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
   color: var(--mute); cursor: pointer; transition: border-color 0.15s, background 0.15s;
-  padding: 14px;
+  padding: 14px; text-align: center;
 }
-.upload-slot:hover { border-color: var(--wire); background: rgba(74,143,168,0.06); }
-.upload-slot.drag-over { border-color: var(--signal); background: rgba(217,165,72,0.08); }
+.upload-slot:hover { border-color: var(--wire); background: var(--wire-wash); }
+.upload-slot.drag-over { border-color: var(--signal); background: var(--signal-wash); }
 .upload-slot.has-file { border-style: solid; border-color: var(--verified); color: var(--paper); }
-.upload-label { font-size: 12.5px; font-weight: 500; text-align: center; max-width: 260px; }
-.upload-hint { font-size: 10.5px; color: var(--mute); }
-.upload-filename { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--verified); }
+.upload-label { font-size: 12.5px; font-weight: 500; max-width: 300px; }
+.upload-hint { font-size: 10.5px; color: var(--mute); max-width: 340px; line-height: 1.45; }
+.upload-slot-name { font-size: 10px; color: var(--mute); text-transform: uppercase; letter-spacing: 0.05em; }
+.upload-filename { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--verified); overflow-wrap: anywhere; }
 .upload-swap { font-size: 10px; color: var(--mute); }
+.upload-clear {
+  display: inline-flex; align-items: center; gap: 4px; margin-top: 2px;
+  background: none; border: 1px solid var(--line); color: var(--mute);
+  border-radius: 14px; padding: 3px 9px; font-size: 10.5px; cursor: pointer;
+}
+.upload-clear:hover { color: var(--paper); border-color: var(--mute); }
 
 .process-btn {
   display: flex; align-items: center; gap: 8px; align-self: center;
-  background: var(--signal); color: #1a1408; border: none; border-radius: 8px;
-  padding: 0 22px; height: 44px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px;
+  background: var(--signal-fill); color: var(--on-signal); border: none; border-radius: 8px;
+  padding: 0 22px; height: 44px; font-weight: 600; font-size: 13px;
   cursor: pointer; white-space: nowrap; transition: filter 0.15s, transform 0.1s;
 }
 .process-btn:hover:not(:disabled) { filter: brightness(1.08); }
@@ -2210,14 +2782,15 @@ const STYLES = `
 
 .error-box {
   display: flex; align-items: flex-start; gap: 10px;
-  background: var(--alert-dim); border: 1px solid var(--alert); color: #f0c4b8;
+  background: var(--alert-dim); border: 1px solid var(--alert); color: var(--alert-ink);
   border-radius: 8px; padding: 12px 14px; font-size: 12.5px; margin-bottom: 18px; line-height: 1.5;
 }
+.error-box svg { flex-shrink: 0; margin-top: 2px; }
 
 .summary-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
 .summary-stat {
   display: flex; align-items: center; gap: 6px;
-  font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 500; padding: 6px 12px; border-radius: 20px;
+  font-size: 12px; font-weight: 500; padding: 6px 12px; border-radius: 20px;
   border: 1.5px solid transparent; cursor: pointer; transition: filter 0.12s, border-color 0.12s, transform 0.1s;
 }
 .summary-stat:hover { filter: brightness(1.12); }
@@ -2227,16 +2800,16 @@ const STYLES = `
 .summary-stat.flag { background: var(--signal-dim); color: var(--signal); }
 .summary-stat.anomaly { background: var(--alert-dim); color: var(--alert); }
 .summary-stat.is-active { border-color: currentColor; }
-.summary-stat.is-active.auto { box-shadow: 0 0 0 3px rgba(127,166,135,0.18); }
-.summary-stat.is-active.flag { box-shadow: 0 0 0 3px rgba(217,165,72,0.18); }
-.summary-stat.is-active.anomaly { box-shadow: 0 0 0 3px rgba(194,99,74,0.18); }
+.summary-stat.is-active.auto { box-shadow: 0 0 0 3px var(--verified-ring); }
+.summary-stat.is-active.flag { box-shadow: 0 0 0 3px var(--signal-ring); }
+.summary-stat.is-active.anomaly { box-shadow: 0 0 0 3px var(--alert-ring); }
 .summary-stat.quadratura { cursor: default; }
 .summary-stat.quadratura:hover { filter: none; }
 .summary-stat.quadratura span { margin-left: 2px; }
 .filter-clear {
   display: flex; align-items: center; gap: 5px;
   background: none; border: 1px dashed var(--line); color: var(--mute);
-  border-radius: 20px; padding: 6px 11px; font-size: 11.5px; font-family: 'Inter', sans-serif;
+  border-radius: 20px; padding: 6px 11px; font-size: 11.5px;
   cursor: pointer; transition: border-color 0.12s, color 0.12s;
 }
 .filter-clear:hover { border-color: var(--mute); color: var(--paper); }
@@ -2247,9 +2820,34 @@ const STYLES = `
   display: flex; align-items: center; gap: 7px;
   background: var(--panel-raised); color: var(--paper); border: 1px solid var(--line);
   border-radius: 7px; padding: 8px 14px; font-size: 12.5px; font-weight: 500;
-  cursor: pointer; transition: border-color 0.15s;
+  cursor: pointer; transition: border-color 0.15s, filter 0.15s;
 }
 .export-btn:hover { border-color: var(--wire); }
+.export-btn.export-primary { background: var(--signal-fill); color: var(--on-signal); border-color: transparent; font-weight: 600; }
+.export-btn.export-primary:hover { filter: brightness(1.07); border-color: transparent; }
+
+/* ---- CapEx totals panel ---- */
+.capex-checks {
+  display: flex; flex-direction: column; gap: 7px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 12px 16px 13px; margin-bottom: 14px;
+}
+.cx-row {
+  display: grid; grid-template-columns: minmax(0, 2.3fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.5fr);
+  gap: 14px; align-items: baseline; font-size: 12.5px; color: var(--paper-dim);
+}
+.cx-head {
+  font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--mute);
+  padding-bottom: 6px; border-bottom: 1px solid var(--line);
+}
+.cx-label { color: var(--paper); }
+.cx-rng { color: var(--mute); font-size: 11px; margin-left: 4px; white-space: nowrap; }
+.cx-n { text-align: right; font-variant-numeric: tabular-nums; }
+.cx-row:not(.cx-head) .cx-n { color: var(--paper); font-weight: 500; }
+.cx-row:not(.cx-head) .cx-prev { color: var(--mute); font-weight: 400; }
+.cx-to { color: var(--wire); font-size: 11.5px; }
+.cx-head .cx-to { color: var(--mute); font-size: 9.5px; }
+.cx-how { margin: 3px 0 0; font-size: 11.5px; color: var(--mute); line-height: 1.55; max-width: 92ch; }
 
 .table-wrap { border: 1px solid var(--line); border-radius: 10px; overflow: auto; max-height: 62vh; }
 table { width: 100%; border-collapse: collapse; font-size: 12.3px; }
@@ -2262,12 +2860,13 @@ thead th {
 th.col-numeric, td.col-numeric { text-align: right; }
 tbody td { padding: 7px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; color: var(--paper-dim); }
 tbody tr:last-child td { border-bottom: none; }
-tbody tr:hover { background: rgba(255,255,255,0.02); }
-tbody tr.row-flag { background: rgba(217,165,72,0.04); }
-tbody tr.row-anomaly { background: rgba(194,99,74,0.06); }
-td.col-note { white-space: normal; min-width: 220px; color: var(--mute); font-size: 11.5px; }
+tbody tr:hover { background: var(--row-hover); }
+tbody tr.row-flag { background: var(--row-flag); }
+tbody tr.row-anomaly { background: var(--row-anomaly); }
+td.col-note { white-space: normal; min-width: 380px; max-width: 560px; color: var(--mute); font-size: 11.5px; line-height: 1.45; }
 .note-reason { color: var(--signal); }
 .col-status { width: 1%; }
+.pill[title] { cursor: help; }
 
 .pill {
   display: inline-flex; align-items: center; gap: 4px;
@@ -2281,12 +2880,63 @@ td.col-note { white-space: normal; min-width: 220px; color: var(--mute); font-si
 .empty-state {
   display: flex; gap: 10px; align-items: flex-start;
   border: 1px dashed var(--line); border-radius: 10px; padding: 18px 20px;
-  color: var(--mute); font-size: 12.5px; line-height: 1.6; max-width: 560px;
+  color: var(--mute); font-size: 12.5px; line-height: 1.6; max-width: 620px;
 }
-.empty-state svg { flex-shrink: 0; margin-top: 1px; color: var(--wire); }
+.empty-state p { margin: 0; }
+.empty-state svg { flex-shrink: 0; margin-top: 3px; color: var(--wire); }
 
 ::-webkit-scrollbar { width: 9px; height: 9px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 5px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--mute); }
+
+/* ---- Narrow screens: rail across the top, one column ---- */
+@media (max-width: 860px) {
+  .upload-grid-3 { grid-template-columns: 1fr 1fr; }
+  .main { padding-left: 24px; padding-right: max(24px, env(safe-area-inset-right, 0px)); }
+}
+@media (max-width: 720px) {
+  .app-root { flex-direction: column; }
+  .rail {
+    width: auto; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 10px 16px;
+    border-right: none; border-bottom: 1px solid var(--line);
+    padding-block: 12px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .rail-brand { margin-bottom: 0; padding: 0; }
+  .rail-nav { flex-direction: row; flex-wrap: wrap; gap: 4px; }
+  .rail-item { padding: 7px 10px; }
+  .rail-item-chevron { display: none; }
+  .rail-db { margin-top: 0; padding-top: 8px; width: 100%; }
+  .rail-db-head { margin-bottom: 6px; }
+  .rail-db-stats { flex-direction: row; flex-wrap: wrap; gap: 4px 14px; }
+  .main {
+    max-width: none;
+    padding-block: 20px 32px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .main-header { flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 18px; }
+  .main-dest { text-align: left; }
+  .upload-section { flex-direction: column; }
+  .upload-grid, .upload-grid-3 { grid-template-columns: 1fr; }
+  .process-btn { align-self: stretch; justify-content: center; }
+  .summary-spacer { flex-basis: 100%; height: 0; }
+  .table-wrap { max-height: 70vh; }
+  .cx-row { grid-template-columns: 1fr 1fr; gap: 4px 14px; }
+  .cx-head { grid-template-columns: 1fr; }
+  .cx-head .cx-n, .cx-head .cx-to { display: none; }
+  .cx-label, .cx-to { grid-column: 1 / -1; }
+  .cx-row:not(.cx-head) .cx-n { text-align: left; }
+  .cx-row:not(.cx-head) .cx-n::before {
+    content: attr(data-label); display: block;
+    font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--mute); font-weight: 400;
+  }
+  .cx-row:not(.cx-head) { padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-root *, .app-root *::before, .app-root *::after { transition: none !important; }
+  .spin { animation-duration: 2.4s; }
+}
 `;
