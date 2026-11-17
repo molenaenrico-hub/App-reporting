@@ -118,11 +118,11 @@ const MODES = [
   },
   {
     id: 'bdv', label: 'BDV', icon: Landmark,
-    tagline: 'Bilancio di Verifica + P&L per classe',
+    tagline: 'Bilancio di Verifica + P&L per classe, con De Giorgi, CSG e Vesuvio',
     dest: 'sheet "BDV", colonna del mese corrente',
     fileHint: 'Due file: il Bilancio di Verifica NetSuite e il Profit&Loss per classe',
-    emptyHint: 'Carica il Bilancio di Verifica e il Profit & Loss per classe. Il bilancio De Giorgi è facoltativo: ' +
-      'se lo aggiungi, l’output riporta una colonna per CVS e una per De Giorgi.',
+    emptyHint: 'Carica il Bilancio di Verifica e il Profit & Loss per classe. I bilanci di De Giorgi, CSG e Vesuvio sono facoltativi: ' +
+      'per ognuno che aggiungi (bridge o raccordo con i conti NetSuite) l’output riporta una colonna, più il totale da incollare nella colonna BdV del mese.',
     accept: '.xls,.xlsx',
     multi: true,
   },
@@ -424,10 +424,19 @@ function sheetRows(wb, sheetName) {
   const ref = ws['!ref'];
   if (!ref) return [];
   const range = XLSX.utils.decode_range(ref);
+  // formatting can stretch the used range to the last column of the grid (XFD):
+  // stop at the last column that actually holds a cell
+  let lastC = 0;
+  for (const k of Object.keys(ws)) {
+    if (k[0] === '!') continue;
+    const c = XLSX.utils.decode_cell(k).c;
+    if (c > lastC) lastC = c;
+  }
+  const maxC = Math.min(range.e.c, lastC);
   const rows = [];
   for (let r = 0; r <= range.e.r; r++) {
     const row = [];
-    for (let c = 0; c <= range.e.c; c++) {
+    for (let c = 0; c <= maxC; c++) {
       const cell = ws[XLSX.utils.encode_cell({ r, c })];
       row.push(cell ? (cell.v ?? null) : null);
     }
@@ -1513,83 +1522,18 @@ function proposeBdvClassification(code, name, bdvFull) {
   };
 }
 
-function processBDV(wbTB, wbPL, db, wbDG) {
-  // ---- optional second company: aggregate its balance onto CVS accounts ----
-  let dgByCode = {}, dgByClass = {}, dgExtra = [], dgSheetName = null, dgTotal = 0;
-  if (wbDG) {
-    const parsedDG = readDeGiorgiBridge(wbDG, db);
-    if (parsedDG.error) return { error: parsedDG.error };
-    dgSheetName = parsedDG.sheetName;
+// The group companies whose trial balances go into the BDV sheet next to CiviSmart's.
+// Each arrives already bridged to NetSuite accounts; in the Reporting the month's BdV
+// column is the sum of CVS and of every company (checked on August: CVS + De Giorgi on
+// all 124 accounts De Giorgi touches). `streams` names the DB table with the agreed
+// business class of each of the company's revenue accounts.
+const BDV_COMPANIES = [
+  { id: 'dg', label: 'De Giorgi', field: 'valoreDG', streams: 'degiorgiRevenueStream' },
+  { id: 'csg', label: 'CSG', field: 'valoreCSG', streams: 'csgRevenueStream' },
+  { id: 'ves', label: 'Vesuvio', field: 'valoreVES', streams: 'vesuvioRevenueStream' },
+];
 
-    for (const rec of parsedDG.records) {
-      dgTotal += rec.value;
-
-      // revenue: 620201 is never carried on the account itself — the BDV splits it
-      // by business class, so the company's revenue has to be split the same way
-      if (rec.cvsCode === '620201') {
-        // the agreed Ricla transcoding maps each of the company's revenue accounts
-        // to a CVS business class
-        const ricla = db.degiorgiRevenueStream && db.degiorgiRevenueStream[rec.dgCode];
-        const cls = rec.stream || (ricla && ricla.stream) || null;
-        if (cls) {
-          dgByClass[cls] = (dgByClass[cls] || 0) + rec.value;
-        } else {
-          // not in the agreed transcoding: still propose a class (the closest by
-          // account name among the classes already in use) rather than leaving it blank
-          const classes = [...new Set(Object.values(db.degiorgiRevenueStream || {})
-            .map(x => x.stream).filter(Boolean))];
-          const guess = proposeByName(rec.dgDesc, null,
-            Object.fromEntries(classes.map(c => [c, { nome: c, quadro: 'CE' }])));
-          const proposed = guess ? guess.code : (classes[0] || null);
-          if (proposed) dgByClass[proposed] = (dgByClass[proposed] || 0) + rec.value;
-          dgExtra.push({
-            code: rec.dgCode, nome: rec.dgDesc, value: 0, quadro: DG_SECTION_QUADRO[rec.section],
-            stato: 'da rivedere',
-            reason: proposed
-              ? `ricavo non presente nella transcodifica concordata — attribuito in via PROPOSTA alla classe "${proposed}" (${fmtEUR(rec.value)} €): da confermare`
-              : `ricavo senza classe di business assegnata (${fmtEUR(rec.value)} €) — va attribuito a una classe prima di entrare nel BDV`,
-          });
-        }
-        continue;
-      }
-
-      if (rec.cvsCode && db.bdvAccounts && (rec.cvsCode in db.bdvAccounts)) {
-        dgByCode[rec.cvsCode] = (dgByCode[rec.cvsCode] || 0) + rec.value;
-        continue;
-      }
-
-      // an account previously flagged "Da creare" may since have been created in the
-      // BDV under the originating company's own code — the DB commesse is the source
-      // of truth, so once it is there it is a normal account, not a new one
-      if (!rec.cvsCode && db.bdvAccounts && (rec.dgCode in db.bdvAccounts)) {
-        dgByCode[rec.dgCode] = (dgByCode[rec.dgCode] || 0) + rec.value;
-        continue;
-      }
-
-      // no CVS account yet: keep the originating company's code and description
-      // and propose the managerial reclassification by analogy
-      const quadro = DG_SECTION_QUADRO[rec.section];
-      const isNumeric = /^\d+$/.test(rec.cvsCode || '');
-      const code = isNumeric ? rec.cvsCode : rec.dgCode;
-      const nome = isNumeric ? (rec.cvsDesc || rec.dgDesc) : rec.dgDesc;
-      const prop = isNumeric
-        ? proposeBdvClassification(code, nome, db.bdvFull)
-        : null;
-      const byName = prop ? null : proposeByName(rec.dgDesc, quadro, db.bdvFull);
-
-      dgExtra.push({
-        code, nome, value: rec.value, quadro,
-        fields: prop ? prop.fields : (byName ? byName.fields : null),
-        stato: isNumeric ? 'da rivedere' : 'da creare',
-        reason: prop
-          ? `conto presente nel piano dei conti ma non ancora nel BDV — classificazione proposta (simili: ${prop.basedOn.join(', ')}): da confermare`
-          : byName
-            ? `conto NUOVO da creare: codice e descrizione mantenuti da ${nome ? 'De Giorgi' : 'origine'}; classificazione proposta per analogia con ${byName.code} (${db.bdvFull[byName.code].nome}): da confermare`
-            : 'conto NUOVO da creare: nessun conto simile in archivio, classificazione da inserire a mano',
-      });
-    }
-  }
-
+function processBDV(wbTB, wbPL, db, companyWbs = {}) {
   // ---- trial balance: find the data sheet (first sheet with an "Account" style layout) ----
   let tbSheetName = wbTB.SheetNames.find(n => /bilancio|verifica|trial/i.test(n)) || wbTB.SheetNames[0];
   const tbRows = sheetRows(wbTB, tbSheetName);
@@ -1626,26 +1570,173 @@ function processBDV(wbTB, wbPL, db, wbDG) {
       classValues[cls] = -(ricaviRow[i] || 0);
     }
   }
-
-  const results = [];
   const classNameSet = new Set(Object.keys(classValues).length ? Object.keys(classValues) : (headerRow ? headerRow.slice(1).filter(c => c && c !== 'Total') : []));
 
-  function emitRow(code, tmpl, valore, status, reason, matchNote, stato, dgOverride) {
-    const dg = dgOverride !== undefined
-      ? dgOverride
-      : (dgByCode[code] ?? dgByClass[code] ?? 0);
+  // ---- the other companies: aggregate each balance onto NetSuite accounts ----
+  const companies = [];
+  for (const co of BDV_COMPANIES) {
+    const wb = companyWbs[co.id];
+    if (!wb) continue;
+    const parsed = readCompanyBridge(wb);
+    if (parsed.error) return { error: `${co.label}: ${parsed.error}` };
+    companies.push({ ...co, sheetName: parsed.sheetName, format: parsed.format, records: parsed.records, byCode: {}, byClass: {}, total: 0 });
+  }
+  // rows the CVS BDV does not have yet, shared by the companies: key -> row
+  const extra = new Map();
+  const addExtra = (key, base, co, value, reason) => {
+    let x = extra.get(key);
+    if (!x) { x = { ...base, values: {}, reasons: [] }; extra.set(key, x); }
+    x.values[co.id] = (x.values[co.id] || 0) + value;
+    if (reason) x.reasons.push(`${co.label}: ${reason}`);
+    if (base.stato === 'da creare') x.stato = 'da creare';
+  };
+  // notes a company leaves on an account that does exist (Vesuvio's "affidabilità media")
+  const rowNotes = {};
+  const noteOn = (code, text) => { (rowNotes[code] = rowNotes[code] || []).push(text); };
+  const knownName = (code) => (db.bdvFull && db.bdvFull[code] ? db.bdvFull[code].nome : tbNames[code]) || null;
+
+  for (const c of companies) {
+    const agreed = db[c.streams] || {};
+    for (const rec of c.records) {
+      c.total += rec.value;
+      const quadro = rec.quadro;
+      const code = rec.cvsCode;
+      const isNumeric = /^\d+$/.test(code || '');
+
+      // revenue: 620201 is never carried on the account itself — the BDV splits it by
+      // business class, so the company's revenue has to be split the same way
+      if (code === '620201' && !rec.toCreate) {
+        const cls = rec.stream || (agreed[rec.originCode] && agreed[rec.originCode].stream) || null;
+        if (cls) { c.byClass[cls] = (c.byClass[cls] || 0) + rec.value; continue; }
+        // not in the agreed transcoding: still propose a class (the closest by account
+        // name among the classes already in use) rather than leaving it blank
+        const classes = [...new Set(BDV_COMPANIES.flatMap(o => Object.values(db[o.streams] || {}).map(x => x.stream)).filter(Boolean))];
+        const guess = proposeByName(rec.originDesc, null, Object.fromEntries(classes.map(k => [k, { nome: k, quadro: 'CE' }])));
+        // with no agreed class anywhere yet, the class carrying most of CVS's revenue
+        const largest = Object.entries(classValues).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]))[0];
+        const proposed = guess ? guess.code : (classes[0] || (largest ? largest[0] : null));
+        if (proposed) c.byClass[proposed] = (c.byClass[proposed] || 0) + rec.value;
+        // with no class at all the amount stays on this row, so the column still squares
+        addExtra(`${c.id}:${rec.originCode}`, { code: rec.originCode, nome: rec.originDesc, quadro: 'CE', stato: 'da rivedere' }, c, proposed ? 0 : rec.value,
+          proposed
+            ? `ricavo ${rec.originCode} «${rec.originDesc}» non presente nella transcodifica concordata — attribuito in via PROPOSTA alla classe "${proposed}" (${fmtEUR(rec.value)} €): da confermare`
+            : `ricavo ${rec.originCode} «${rec.originDesc}» senza classe di business assegnata (${fmtEUR(rec.value)} €) — va attribuito a una classe prima di entrare nel BDV`);
+        continue;
+      }
+
+      // an account the bridge proposes to create in NetSuite: its proposed code may by
+      // now belong to another account, so it lands on an existing row only once
+      // NetSuite has that code under the same description (i.e. it has been created)
+      const created = rec.toCreate && isNumeric && rec.cvsDesc &&
+        sameAccountName(knownName(code), rec.cvsDesc) && ((db.bdvAccounts && code in db.bdvAccounts) || code in tb);
+      if (rec.toCreate && !created) {
+        const key = `${c.id}:new:${code || ''}:${(rec.cvsDesc || rec.originDesc).toLowerCase()}`;
+        const origin = `${rec.originCode} «${rec.originDesc}»`;
+        if (extra.has(key)) {
+          // a second account of the company going into the same new NetSuite account
+          const x = extra.get(key);
+          x.values[c.id] = (x.values[c.id] || 0) + rec.value;
+          x.origins.push(origin);
+          continue;
+        }
+        const taken = isNumeric && knownName(code) && !sameAccountName(knownName(code), rec.cvsDesc) ? knownName(code) : null;
+        const byCode = isNumeric ? proposeBdvClassification(code, rec.cvsDesc || rec.originDesc, db.bdvFull) : null;
+        const byName = byCode ? null : proposeByName(rec.cvsDesc || rec.originDesc, quadro, db.bdvFull);
+        addExtra(key, {
+          code: rec.originCode, nome: rec.cvsDesc || rec.originDesc, quadro,
+          fields: byCode ? byCode.fields : (byName ? byName.fields : null), stato: 'da creare', origins: [origin],
+          createNote: `conto da creare in NetSuite${isNumeric ? ` (codice proposto nel ${c.format === 'raccordo' ? 'raccordo' : 'bridge'}: ${code})` : ''}` +
+            (taken ? `, ma ${code} in NetSuite è già «${taken}»: serve un altro codice` : '') +
+            (byCode ? `; classificazione proposta (simili: ${byCode.basedOn.join(', ')})` : byName ? `; classificazione proposta per analogia con ${byName.code} (${db.bdvFull[byName.code].nome})` : '') +
+            ': da confermare',
+          createCo: c.label,
+        }, c, rec.value, null);
+        continue;
+      }
+
+      if (created) {
+        noteOn(code, `${c.label}: nel ${c.format === 'raccordo' ? 'raccordo' : 'bridge'} ${rec.originCode} «${rec.originDesc}» è ancora «da creare», ma ${code} «${knownName(code)}» c’è già in NetSuite: abbinato qui`);
+      }
+      if (code && db.bdvAccounts && (code in db.bdvAccounts)) {
+        c.byCode[code] = (c.byCode[code] || 0) + rec.value;
+        if (rec.reliability && /media|bassa/i.test(rec.reliability)) {
+          noteOn(code, `${c.label}: abbinamento con affidabilità ${rec.reliability.toLowerCase()} (${rec.originCode} «${rec.originDesc}»)${rec.note ? ` — ${rec.note}` : ''}`);
+        }
+        continue;
+      }
+      // a NetSuite account CVS has but the BDV sheet doesn't list yet: it goes on the
+      // same row as the CVS amount
+      if (code && (code in tb) && isNumeric && code.length > 4) {
+        c.byCode[code] = (c.byCode[code] || 0) + rec.value;
+        if (rec.reliability && /media|bassa/i.test(rec.reliability)) {
+          noteOn(code, `${c.label}: abbinamento con affidabilità ${rec.reliability.toLowerCase()} (${rec.originCode} «${rec.originDesc}»)${rec.note ? ` — ${rec.note}` : ''}`);
+        }
+        continue;
+      }
+      // an account previously flagged "Da creare" may since have been created in the
+      // BDV under the originating company's own code — the DB commesse is the source
+      // of truth, so once it is there it is a normal account, not a new one
+      if (!code && db.bdvAccounts && (rec.originCode in db.bdvAccounts)) {
+        c.byCode[rec.originCode] = (c.byCode[rec.originCode] || 0) + rec.value;
+        continue;
+      }
+      // only a group of the chart (1802 Disponibilità liquide, 2802 …): the leaf account
+      // still has to be chosen or created
+      if (isNumeric && code.length <= 4) {
+        const byCode = proposeBdvClassification(code, rec.originDesc, db.bdvFull);
+        const byName = byCode ? null : proposeByName(rec.originDesc, quadro, db.bdvFull);
+        addExtra(`${c.id}:${rec.originCode}`, {
+          code: rec.originCode, nome: rec.originDesc, quadro, fields: byCode ? byCode.fields : (byName ? byName.fields : null), stato: 'da creare',
+        }, c, rec.value,
+          `nel bridge c'è solo il gruppo ${code}${tbNames[code] ? ` (${tbNames[code]})` : ''}, non un conto: va scelto o creato il sottoconto; codice e descrizione di origine tenuti qui` +
+          (byCode ? `; classificazione proposta dai conti del gruppo (simili: ${byCode.basedOn.join(', ')})` : byName ? `; classificazione proposta per analogia con ${byName.code} (${db.bdvFull[byName.code].nome})` : '') + ': da confermare');
+        continue;
+      }
+
+      // no CVS account yet: keep the originating company's code and description
+      // and propose the managerial reclassification by analogy
+      const rowCode = isNumeric ? code : rec.originCode;
+      const nome = isNumeric ? (rec.cvsDesc || rec.originDesc) : rec.originDesc;
+      const prop = isNumeric ? proposeBdvClassification(rowCode, nome, db.bdvFull) : null;
+      const byName = prop ? null : proposeByName(rec.originDesc, quadro, db.bdvFull);
+      addExtra(isNumeric ? rowCode : `${c.id}:${rec.originCode}`, {
+        code: rowCode, nome, quadro, fields: prop ? prop.fields : (byName ? byName.fields : null),
+        stato: isNumeric ? 'da rivedere' : 'da creare',
+      }, c, rec.value,
+        prop
+          ? `conto presente nel piano dei conti ma non ancora nel BDV — classificazione proposta (simili: ${prop.basedOn.join(', ')}): da confermare`
+          : byName
+            ? `conto NUOVO da creare: codice e descrizione mantenuti da ${c.label}; classificazione proposta per analogia con ${byName.code} (${db.bdvFull[byName.code].nome}): da confermare`
+            : 'conto NUOVO da creare: nessun conto simile in archivio, classificazione da inserire a mano');
+    }
+  }
+
+  const results = [];
+  const r2 = (v) => Math.round((v || 0) * 100) / 100;
+  const coValue = (c, code) => c.byCode[code] ?? c.byClass[code] ?? 0;
+
+  function emitRow(code, tmpl, valore, status, reason, matchNote, stato, coValues) {
+    const notes = rowNotes[code];
+    if (notes && status === 'auto') { status = 'flag'; stato = stato || 'da rivedere'; }
+    const fields = {
+      societa: tmpl?.societa ?? 'CVS', quadro: tmpl?.quadro ?? (code === '620201' || classNameSet.has(code) ? 'CE' : ''),
+      altro: tmpl?.altro ?? '', ricla: tmpl?.ricla ?? (classNameSet.has(code) ? 'Revenue by class' : ''),
+      codice: code, nome: tmpl?.nome ?? code, clusterII: tmpl?.clusterII ?? '',
+      contoI: tmpl?.contoI ?? '', contoII: tmpl?.contoII ?? '',
+      valore: r2(valore),
+      stato: stato ?? '',
+    };
+    let tot = fields.valore;
+    for (const c of companies) {
+      const v = r2(coValues ? (coValues[c.id] || 0) : coValue(c, code));
+      fields[c.field] = v;
+      tot += v;
+    }
+    if (companies.length) fields.valoreTot = r2(tot);
     results.push({
-      key: nextKey(), status, reason,
-      fields: {
-        societa: tmpl?.societa ?? 'CVS', quadro: tmpl?.quadro ?? (code === '620201' || classNameSet.has(code) ? 'CE' : ''),
-        altro: tmpl?.altro ?? '', ricla: tmpl?.ricla ?? (classNameSet.has(code) ? 'Revenue by class' : ''),
-        codice: code, nome: tmpl?.nome ?? code, clusterII: tmpl?.clusterII ?? '',
-        contoI: tmpl?.contoI ?? '', contoII: tmpl?.contoII ?? '',
-        valore: Math.round(valore * 100) / 100,
-        valoreDG: Math.round((dg || 0) * 100) / 100,
-        stato: stato ?? '',
-      },
-      matchNote,
+      key: nextKey(), status,
+      reason: [reason, ...(notes || [])].filter(Boolean).join(' · ') || null,
+      fields, matchNote,
     });
   }
 
@@ -1663,9 +1754,17 @@ function processBDV(wbTB, wbPL, db, wbDG) {
   for (const [cls, val] of Object.entries(classValues)) {
     emitRow(cls, null, val, 'auto', null, '620201 Ricavi, per classe');
   }
+  // a class only a company has revenue in, and the BDV has no row for yet
+  for (const c of companies) {
+    for (const [cls, v] of Object.entries(c.byClass)) {
+      if (classNameSet.has(cls) || (db.bdvAccounts && cls in db.bdvAccounts) || results.some(r => r.fields.codice === cls)) continue;
+      emitRow(cls, null, 0, 'flag', `classe di ricavo "${cls}" senza riga nel BDV: va aggiunta`, '620201 Ricavi, per classe', 'da rivedere');
+    }
+  }
 
   // ---- accounts present in the raw file but not yet in the BDV sheet ----
-  const unknown = Object.keys(tb).filter(c => !(c in db.bdvAccounts) && Math.abs(tb[c]) > 0.01);
+  const unknown = Object.keys(tb).filter(c => !(c in db.bdvAccounts) &&
+    (Math.abs(tb[c]) > 0.01 || companies.some(co => Math.abs(co.byCode[c] || 0) > 0.01)));
   for (const code of unknown) {
     const nome = tbNames[code] || code;
     const proposal = proposeBdvClassification(code, nome, db.bdvFull);
@@ -1682,13 +1781,17 @@ function processBDV(wbTB, wbPL, db, wbDG) {
       reason = 'NUOVO conto — nessun conto simile in archivio, classificazione da inserire a mano';
     }
 
-    emitRow(code, tmpl, tb[code], 'flag', reason, null, 'new');
+    emitRow(code, tmpl, tb[code] || 0, 'flag', reason, null, 'new');
   }
 
-  // ---- De Giorgi accounts that have no row in the BDV yet ----
-  for (const x of dgExtra) {
+  // ---- company accounts that have no row in the BDV yet ----
+  for (const x of extra.values()) {
+    if (x.createNote) {
+      x.reasons.unshift(`${x.createCo}: ${x.createNote.replace(/: da confermare$/, '')}; qui codice e descrizione di origine (${x.origins.join(' + ')}): da confermare`);
+    }
     const tmpl = { ...(x.fields || {}), nome: x.nome, quadro: x.fields?.quadro || x.quadro };
-    emitRow(x.code, tmpl, 0, 'flag', x.reason, 'solo De Giorgi', x.stato, x.value);
+    const who = BDV_COMPANIES.filter(c => x.values[c.id] !== undefined).map(c => c.label).join(' e ');
+    emitRow(x.code, tmpl, 0, 'flag', x.reasons.join(' · '), `solo ${who}`, x.stato, x.values);
   }
 
   const monthLabel = 'Valore mese';
@@ -1704,40 +1807,61 @@ function processBDV(wbTB, wbPL, db, wbDG) {
     { key: 'contoII', label: 'Conto COGE II livello (J)' },
     { key: 'valore', label: `${monthLabel} € — CVS`, numeric: true },
   ];
-  if (wbDG) columns.push({ key: 'valoreDG', label: `${monthLabel} € — De Giorgi`, numeric: true });
+  for (const c of companies) columns.push({ key: c.field, label: `${monthLabel} € — ${c.label}`, numeric: true });
+  // what goes in the month's BdV column of the Reporting: CVS plus every company
+  if (companies.length) columns.push({ key: 'valoreTot', label: `${monthLabel} € — Totale BdV`, numeric: true });
   // kept last on purpose: the account columns stay contiguous for a straight paste
   columns.push({ key: 'stato', label: 'Stato' });
   columns.push({ key: 'nota', label: 'Nota' });
 
+  const dg = companies.find(c => c.id === 'dg');
   return {
     results, columns,
-    tbSheetName, plSheetName, dgSheetName,
-    dgTotal: Math.round(dgTotal * 100) / 100,
+    tbSheetName, plSheetName,
+    companies: companies.map(c => ({ id: c.id, label: c.label, sheetName: c.sheetName, total: r2(c.total) || 0, records: c.records.length })),
+    dgSheetName: dg ? dg.sheetName : null,
+    dgTotal: dg ? r2(dg.total) : 0,
   };
 }
 
 /* ----------------------------------------------------------------------------
-   De Giorgi bridge (optional second company)
+   Company bridges (De Giorgi, CSG, Vesuvio)
 
-   The acquired company's trial balance arrives already bridged: its own account
-   code and description, the balance, and the CVS account it maps onto. Accounts
-   marked "Da creare" have no CVS account yet — those keep the ORIGINATING
-   company's code and description, and only their managerial reclassification is
-   proposed by analogy.
+   Each company's trial balance arrives already bridged to NetSuite accounts, in one
+   of two layouts, recognised from the headers:
 
-   Balances arrive as positive numbers under four section headings. The BDV works
-   in Debit - Credit, so PASSIVO and RICAVI are negated on the way in; that is what
-   makes the two companies' columns summable and the whole thing square to zero.
+   - "Bridge" (De Giorgi, CSG): the company's own "Codice"/"Descrizione", the balance
+     ("Saldo al …") as a positive number under four section headings, then the
+     NetSuite "Codice" and its "Descrizione". The BDV works in Debit - Credit, so
+     PASSIVO and RICAVI are negated on the way in; that is what makes the companies'
+     columns summable and the whole thing square to zero. Accounts marked "Da creare"
+     have no NetSuite account yet.
+
+   - "Raccordo" (Vesuvio): one row per account of the company's consultant with its
+     "Sezione" (SP - Attivo …), the balance already in Debit - Credit, the "Conto
+     NetSuite" with its description, an "Affidabilità" of the match and a note.
+     NetSuite accounts still to be created say "DA CREARE" in their description.
    ---------------------------------------------------------------------------- */
 
 const DG_SECTION_SIGN = { ATTIVO: 1, COSTI: 1, PASSIVO: -1, RICAVI: -1 };
 const DG_SECTION_QUADRO = { ATTIVO: 'SP', PASSIVO: 'SP', COSTI: 'CE', RICAVI: 'CE' };
 
-function readDeGiorgiBridge(wb, db) {
+function readCompanyBridge(wb) {
+  const bridge = readSectionBridge(wb);
+  if (!bridge.error) return bridge;
+  const raccordo = readRaccordoBridge(wb);
+  if (raccordo && !raccordo.error) return raccordo;
+  return {
+    error: raccordo && raccordo.error ? raccordo.error
+      : `non riconosco il file: serve il bridge (“Codice”, “Descrizione”, “Saldo …”, “Codice” NetSuite, sezioni ATTIVO / PASSIVO / COSTI / RICAVI) oppure il raccordo (“Codice consulente”, “Sezione”, “Saldo …”, “Conto NetSuite”). Fogli presenti: ${wb.SheetNames.join(', ')}.`,
+  };
+}
+
+function readSectionBridge(wb) {
   const sheetName = findSheet(wb, ['Bridge']) || wb.SheetNames[0];
   const rows = sheetRows(wb, sheetName);
 
-  // locate the header row: the company's own "Codice"/"Descrizione" plus the CVS "Codice"
+  // locate the header row: the company's own "Codice"/"Descrizione" plus the NetSuite "Codice"
   let hdr = -1, cols = null;
   for (let i = 0; i < Math.min(rows.length, 20); i++) {
     const cells = (rows[i] || []).map(v => (v ?? '').toString().trim().toLowerCase());
@@ -1758,7 +1882,7 @@ function readDeGiorgiBridge(wb, db) {
     break;
   }
   if (hdr < 0 || cols.saldo < 0) {
-    return { error: `Nel foglio "${sheetName}" non trovo le intestazioni attese del bridge ("Codice", "Descrizione", "Saldo ...", "Codice" del conto CVS). Fogli disponibili: ${wb.SheetNames.join(', ')}` };
+    return { error: `Nel foglio "${sheetName}" non trovo le intestazioni attese del bridge ("Codice", "Descrizione", "Saldo ...", "Codice" del conto NetSuite). Fogli disponibili: ${wb.SheetNames.join(', ')}` };
   }
 
   const records = [];
@@ -1770,7 +1894,7 @@ function readDeGiorgiBridge(wb, db) {
     const dgDesc = cols.dgDesc >= 0 ? row[cols.dgDesc] : null;
     const saldo = row[cols.saldo];
 
-    // section heading: a label with no balance and no CVS account
+    // section heading: a label with no balance and no NetSuite account
     if (dgCode && dgDesc && (saldo === null || saldo === undefined) && !row[cols.cvsCode]) {
       const label = dgDesc.toString().trim().toUpperCase();
       if (DG_SECTION_SIGN[label] !== undefined) section = label;
@@ -1778,22 +1902,77 @@ function readDeGiorgiBridge(wb, db) {
     }
     if (!dgCode || typeof saldo !== 'number' || !section) continue;
 
+    const note = cols.note >= 0 && row[cols.note] != null ? String(row[cols.note]).trim() : null;
     records.push({
-      section,
-      dgCode: dgCode.toString().trim(),
-      dgDesc: (dgDesc ?? '').toString().trim(),
+      quadro: DG_SECTION_QUADRO[section],
+      originCode: dgCode.toString().trim(),
+      originDesc: (dgDesc ?? '').toString().trim(),
       value: saldo * DG_SECTION_SIGN[section],
       cvsCode: row[cols.cvsCode] != null ? row[cols.cvsCode].toString().trim() : null,
-      cvsDesc: cols.cvsDesc >= 0 ? row[cols.cvsDesc] : null,
-      note: cols.note >= 0 ? row[cols.note] : null,
+      cvsDesc: cols.cvsDesc >= 0 && row[cols.cvsDesc] != null ? String(row[cols.cvsDesc]).trim() : null,
+      note,
       stream: cols.stream >= 0 && row[cols.stream] ? row[cols.stream].toString().trim() : null,
+      toCreate: false, // "Da creare" rows of this layout carry no NetSuite code at all
+      reliability: null,
     });
   }
 
   if (!records.length) {
     return { error: `Nel foglio "${sheetName}" non trovo righe di conto sotto le sezioni ATTIVO / PASSIVO / COSTI / RICAVI.` };
   }
-  return { records, sheetName };
+  return { records, sheetName, format: 'bridge' };
+}
+
+function readRaccordoBridge(wb) {
+  for (const sheetName of wb.SheetNames) {
+    const rows = sheetRows(wb, sheetName);
+    for (let i = 0; i < Math.min(rows.length, 20); i++) {
+      const cells = (rows[i] || []).map(norm);
+      const col = {
+        code: cells.findIndex(c => c.startsWith('codice')),
+        desc: cells.findIndex(c => c.startsWith('descrizione')),
+        sezione: cells.indexOf('sezione'),
+        saldo: cells.findIndex(c => c.startsWith('saldo')),
+        ns: cells.findIndex(c => c === 'conto netsuite'),
+        nsDesc: cells.findIndex(c => c === 'descrizione netsuite'),
+        aff: cells.findIndex(c => c.startsWith('affidabilit')),
+        note: cells.indexOf('note'),
+      };
+      if (col.code < 0 || col.sezione < 0 || col.saldo < 0 || col.ns < 0) continue;
+      const records = [];
+      for (let r = i + 1; r < rows.length; r++) {
+        const row = rows[r];
+        if (!row || cxBlank(row[col.code]) || typeof row[col.saldo] !== 'number') continue;
+        const sez = norm(row[col.sezione]);
+        const quadro = sez.startsWith('ce') ? 'CE' : sez.startsWith('sp') ? 'SP' : null;
+        if (!quadro) continue; // a total or a footnote, not an account
+        const nsDesc = col.nsDesc >= 0 && row[col.nsDesc] != null ? String(row[col.nsDesc]).trim() : null;
+        const note = col.note >= 0 && row[col.note] != null ? String(row[col.note]).trim() : null;
+        const toCreate = /da creare/i.test(nsDesc || '') || /conto da creare/i.test(note || '');
+        records.push({
+          quadro,
+          originCode: String(row[col.code]).trim(),
+          originDesc: col.desc >= 0 && row[col.desc] != null ? String(row[col.desc]).trim() : '',
+          value: row[col.saldo],
+          cvsCode: cxBlank(row[col.ns]) ? null : String(row[col.ns]).trim(),
+          cvsDesc: nsDesc ? nsDesc.replace(/\s*[–—-]\s*da creare\s*$/i, '').trim() : null,
+          note,
+          stream: null,
+          toCreate,
+          reliability: col.aff >= 0 && row[col.aff] != null ? String(row[col.aff]).trim() : null,
+        });
+      }
+      if (!records.length) return { error: `Nel foglio "${sheetName}" del raccordo non trovo righe di conto con sezione e saldo.` };
+      return { records, sheetName, format: 'raccordo' };
+    }
+  }
+  return null;
+}
+
+// same account description, ignoring case, spacing and punctuation
+function sameAccountName(a, b) {
+  const k = (s) => (s ?? '').toString().toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  return !!k(a) && k(a) === k(b);
 }
 
 // closest known account by name, used for accounts that have no CVS code at all
@@ -3061,8 +3240,9 @@ export default function App() {
       } else if (mode === 'bdv') {
         const wbTB = await readWorkbookFromFile(files.tb);
         const wbPL = await readWorkbookFromFile(files.pl);
-        const wbDG = files.dg ? await readWorkbookFromFile(files.dg) : null;
-        result = processBDV(wbTB, wbPL, db, wbDG);
+        const companyWbs = {};
+        for (const co of BDV_COMPANIES) if (files[co.id]) companyWbs[co.id] = await readWorkbookFromFile(files[co.id]);
+        result = processBDV(wbTB, wbPL, db, companyWbs);
       } else if (mode === 'sgp') {
         const wb = await readWorkbookFromFile(files.main);
         result = processSGP(wb, db);
@@ -3215,8 +3395,12 @@ export default function App() {
                 onFile={setFile('tb')} fileName={files.tb?.name} />
               <UploadSlot label="Profit &amp; Loss per classe" hint="es. ProfitandLoss293.xls" accept={modeConfig.accept}
                 onFile={setFile('pl')} fileName={files.pl?.name} />
-              <UploadSlot label="Bilancio De Giorgi (facoltativo)" hint="il file di mappatura con il bridge dei conti" accept=".xlsx,.xls"
+              <UploadSlot label="Bilancio De Giorgi (facoltativo)" hint="la mappatura con il bridge dei conti NetSuite" accept=".xlsx,.xls"
                 onFile={setFile('dg')} fileName={files.dg?.name} onClear={clearFile('dg')} />
+              <UploadSlot label="Bilancio CSG (facoltativo)" hint="la mappatura con il bridge dei conti NetSuite" accept=".xlsx,.xls"
+                onFile={setFile('csg')} fileName={files.csg?.name} onClear={clearFile('csg')} />
+              <UploadSlot label="Raccordo Vesuvio (facoltativo)" hint="il raccordo dei conti del consulente con NetSuite" accept=".xlsx,.xls"
+                onFile={setFile('ves')} fileName={files.ves?.name} onClear={clearFile('ves')} />
             </div>
           ) : mode === 'capex' ? (
             <div className="upload-grid">
@@ -3277,17 +3461,17 @@ export default function App() {
                   <AlertOctagon size={14} /> <span>{stats.anomaly}</span> anomalie
                 </button>
               )}
-              {mode === 'bdv' && output.dgSheetName && (
-                <div
-                  className={`summary-stat quadratura ${Math.abs(output.dgTotal) < 0.01 ? 'auto' : 'anomaly'}`}
-                  title="Bridge De Giorgi: la somma degli importi con segno deve fare esattamente zero (attivo = passivo + risultato)"
+              {mode === 'bdv' && (output.companies || []).map(co => (
+                <div key={co.id}
+                  className={`summary-stat quadratura ${Math.abs(co.total) < 0.01 ? 'auto' : 'anomaly'}`}
+                  title={`${co.label}: la somma degli importi con segno deve fare esattamente zero (attivo = passivo + risultato)`}
                 >
-                  {Math.abs(output.dgTotal) < 0.01
+                  {Math.abs(co.total) < 0.01
                     ? <Check size={14} />
                     : <AlertOctagon size={14} />}
-                  {' '}quadratura bridge: <span>{fmtEUR(output.dgTotal)}</span> €
+                  {' '}quadratura {co.label}: <span>{fmtEUR(co.total)}</span> €
                 </div>
-              )}
+              ))}
               {filter && (
                 <button className="filter-clear" onClick={() => setFilter(null)}>
                   <X size={12} /> mostra tutte
