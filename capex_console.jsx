@@ -118,11 +118,12 @@ const MODES = [
   },
   {
     id: 'bdv', label: 'BDV', icon: Landmark,
-    tagline: 'Bilancio di Verifica + P&L per classe, con De Giorgi, CSG e Vesuvio',
+    tagline: 'Bilancio di Verifica + P&L per classe, con De Giorgi, CSG, Vesuvio e San Mango',
     dest: 'sheet "BDV", colonna del mese corrente',
     fileHint: 'Due file: il Bilancio di Verifica NetSuite e il Profit&Loss per classe',
-    emptyHint: 'Carica il Bilancio di Verifica e il Profit & Loss per classe. I bilanci di De Giorgi, CSG e Vesuvio sono facoltativi: ' +
-      'per ognuno che aggiungi (bridge o raccordo con i conti NetSuite) l’output riporta una colonna, più il totale da incollare nella colonna BdV del mese.',
+    emptyHint: 'Carica il Bilancio di Verifica e il Profit & Loss per classe di CVS. I bilanci di De Giorgi, CSG, Vesuvio e San Mango sono facoltativi: ' +
+      'per ognuno che aggiungi (bridge o raccordo con i conti NetSuite, anche un unico Excel con un foglio per società) l’output riporta una colonna, più il totale da incollare nella colonna BdV del mese. ' +
+      'Per un periodo senza i file CVS puoi caricare solo i bilanci delle società: l’output ha le loro colonne e il totale delle società.',
     accept: '.xls,.xlsx',
     multi: true,
   },
@@ -381,6 +382,12 @@ function parseXLML(text, DOMParserImpl) {
 
 async function readWorkbookFromFile(file) {
   const buf = await file.arrayBuffer();
+
+  // a PDF (e.g. a filed financial statement) is not a spreadsheet: say so plainly
+  // instead of letting the spreadsheet reader turn it into nonsense rows
+  if (new TextDecoder('latin1').decode(buf.slice(0, 5)) === '%PDF-') {
+    throw new Error(`«${file.name}» è un PDF: l’app legge solo file Excel (per le società, il bridge o il raccordo con i conti NetSuite).`);
+  }
 
   // sniff the first bytes as text to detect SpreadsheetML regardless of extension
   const headText = new TextDecoder('utf-8', { fatal: false }).decode(buf.slice(0, 1000));
@@ -1526,17 +1533,36 @@ function proposeBdvClassification(code, name, bdvFull) {
 // Each arrives already bridged to NetSuite accounts; in the Reporting the month's BdV
 // column is the sum of CVS and of every company (checked on August: CVS + De Giorgi on
 // all 124 accounts De Giorgi touches). `streams` names the DB table with the agreed
-// business class of each of the company's revenue accounts.
+// business class of each of the company's revenue accounts. `sheet` recognises the
+// company's own sheet in a workbook that holds several companies (one sheet each).
 const BDV_COMPANIES = [
-  { id: 'dg', label: 'De Giorgi', field: 'valoreDG', streams: 'degiorgiRevenueStream' },
-  { id: 'csg', label: 'CSG', field: 'valoreCSG', streams: 'csgRevenueStream' },
-  { id: 'ves', label: 'Vesuvio', field: 'valoreVES', streams: 'vesuvioRevenueStream' },
+  { id: 'dg', label: 'De Giorgi', field: 'valoreDG', streams: 'degiorgiRevenueStream', sheet: /giorgi/i },
+  { id: 'csg', label: 'CSG', field: 'valoreCSG', streams: 'csgRevenueStream', sheet: /csg/i },
+  { id: 'ves', label: 'Vesuvio', field: 'valoreVES', streams: 'vesuvioRevenueStream', sheet: /vesuvio/i },
+  { id: 'sm', label: 'San Mango', field: 'valoreSM', streams: 'sanmangoRevenueStream', sheet: /mango/i },
 ];
 
+// The classes of the Profit & Loss per classe, in its order: the rows 620201 is split
+// into. Used only when no P&L is loaded (the companies alone, or CVS without its P&L),
+// so the class rows keep their usual place.
+const BDV_PL_CLASSES = [
+  '- No Class -', 'Canone', 'Cemetary Services', 'Energy Public Building', 'Energy Public Building ATI',
+  'Energy Public Building No ATI', 'Extra Revenues', 'Generico', 'One Off Works', 'Photovoltaic',
+  'Public Heat Management No ATI', 'Public Streetlighting', 'Public Streetlighting ATI',
+  'Public Streetlighting No ATI', 'Sales of Goods', 'Smart Buildings', 'Smart City', 'White Certificates',
+];
+
+// wbTB and wbPL are CiviSmart's; either can be missing. Without the trial balance the
+// output carries only the companies (no CVS column); without the P&L, CVS's 620201
+// stays on its own row instead of being split by class.
 function processBDV(wbTB, wbPL, db, companyWbs = {}) {
+  const hasCVS = !!wbTB;
+  if (!hasCVS && !BDV_COMPANIES.some(co => companyWbs[co.id])) {
+    return { error: 'Carica il Bilancio di Verifica CVS (con il Profit & Loss per classe), oppure almeno un bilancio delle società.' };
+  }
   // ---- trial balance: find the data sheet (first sheet with an "Account" style layout) ----
-  let tbSheetName = wbTB.SheetNames.find(n => /bilancio|verifica|trial/i.test(n)) || wbTB.SheetNames[0];
-  const tbRows = sheetRows(wbTB, tbSheetName);
+  const tbSheetName = hasCVS ? (wbTB.SheetNames.find(n => /bilancio|verifica|trial/i.test(n)) || wbTB.SheetNames[0]) : null;
+  const tbRows = hasCVS ? sheetRows(wbTB, tbSheetName) : [];
 
   const tb = {};
   const tbNames = {};
@@ -1552,13 +1578,13 @@ function processBDV(wbTB, wbPL, db, companyWbs = {}) {
     tb[codeStr] = (tb[codeStr] || 0) + (debit - credit);
     if (nameStr && !tbNames[codeStr]) tbNames[codeStr] = nameStr;
   }
-  if (Object.keys(tb).length === 0) {
+  if (hasCVS && Object.keys(tb).length === 0) {
     return { error: `Non trovo righe "codice - nome" nel foglio "${tbSheetName}" del Bilancio di Verifica. Fogli disponibili: ${wbTB.SheetNames.join(', ')}` };
   }
 
   // ---- P&L by class: locate header row + the 620201 Ricavi row ----
-  let plSheetName = wbPL.SheetNames.find(n => /profit|conto economico|p&l/i.test(n)) || wbPL.SheetNames[0];
-  const plRows = sheetRows(wbPL, plSheetName);
+  const plSheetName = wbPL ? (wbPL.SheetNames.find(n => /profit|conto economico|p&l/i.test(n)) || wbPL.SheetNames[0]) : null;
+  const plRows = wbPL ? sheetRows(wbPL, plSheetName) : [];
   let headerRow = plRows.find(r => r && r[0] === 'Financial Row');
   let ricaviRow = plRows.find(r => r && typeof r[0] === 'string' && r[0].startsWith('620201'));
 
@@ -1570,14 +1596,18 @@ function processBDV(wbTB, wbPL, db, companyWbs = {}) {
       classValues[cls] = -(ricaviRow[i] || 0);
     }
   }
-  const classNameSet = new Set(Object.keys(classValues).length ? Object.keys(classValues) : (headerRow ? headerRow.slice(1).filter(c => c && c !== 'Total') : []));
+  const classNameSet = new Set(Object.keys(classValues).length ? Object.keys(classValues)
+    : headerRow ? headerRow.slice(1).filter(c => c && c !== 'Total')
+      : BDV_PL_CLASSES.filter(c => db.bdvAccounts && c in db.bdvAccounts));
+  // CVS revenue the P&L could not split by class (no P&L, or no 620201 row in it)
+  const unsplitRevenue = hasCVS && !Object.keys(classValues).length && Math.abs(tb['620201'] || 0) > 0.005;
 
   // ---- the other companies: aggregate each balance onto NetSuite accounts ----
   const companies = [];
   for (const co of BDV_COMPANIES) {
     const wb = companyWbs[co.id];
     if (!wb) continue;
-    const parsed = readCompanyBridge(wb);
+    const parsed = readCompanyBridge(wb, co);
     if (parsed.error) return { error: `${co.label}: ${parsed.error}` };
     companies.push({ ...co, sheetName: parsed.sheetName, format: parsed.format, records: parsed.records, byCode: {}, byClass: {}, total: 0 });
   }
@@ -1744,15 +1774,23 @@ function processBDV(wbTB, wbPL, db, companyWbs = {}) {
     if (classNameSet.has(code)) continue; // handled exclusively by the class-split rows below
     const tmpl = db.bdvFull ? db.bdvFull[code] : null;
     if (code === '620201') {
-      emitRow(code, tmpl, 0, 'auto', null, 'spacchettato per classe sotto');
+      if (unsplitRevenue) {
+        emitRow(code, tmpl, tb[code], 'flag',
+          wbPL ? 'nel Profit & Loss per classe non trovo la riga 620201: i ricavi CVS restano qui, non divisi per classe'
+            : 'senza il Profit & Loss per classe i ricavi CVS restano qui, non divisi per classe: caricalo per dividerli',
+          null, 'da rivedere');
+      } else {
+        emitRow(code, tmpl, 0, 'auto', null, 'spacchettato per classe sotto');
+      }
       continue;
     }
     const value = tb[code];
     emitRow(code, tmpl, value === undefined ? 0 : value, 'auto', null,
-      value === undefined ? 'assente nel grezzo → 0 (nessuna attività)' : 'Bilancio di Verifica');
+      !hasCVS ? null : value === undefined ? 'assente nel grezzo → 0 (nessuna attività)' : 'Bilancio di Verifica');
   }
-  for (const [cls, val] of Object.entries(classValues)) {
-    emitRow(cls, null, val, 'auto', null, '620201 Ricavi, per classe');
+  const classRows = Object.keys(classValues).length ? Object.keys(classValues) : [...classNameSet];
+  for (const cls of classRows) {
+    emitRow(cls, null, classValues[cls] || 0, 'auto', null, '620201 Ricavi, per classe');
   }
   // a class only a company has revenue in, and the BDV has no row for yet
   for (const c of companies) {
@@ -1805,11 +1843,12 @@ function processBDV(wbTB, wbPL, db, companyWbs = {}) {
     { key: 'clusterII', label: 'Cluster II (H)' },
     { key: 'contoI', label: 'Conto COGE I livello (I)' },
     { key: 'contoII', label: 'Conto COGE II livello (J)' },
-    { key: 'valore', label: `${monthLabel} € — CVS`, numeric: true },
   ];
+  if (hasCVS) columns.push({ key: 'valore', label: `${monthLabel} € — CVS`, numeric: true });
   for (const c of companies) columns.push({ key: c.field, label: `${monthLabel} € — ${c.label}`, numeric: true });
   // what goes in the month's BdV column of the Reporting: CVS plus every company
-  if (companies.length) columns.push({ key: 'valoreTot', label: `${monthLabel} € — Totale BdV`, numeric: true });
+  // (without CVS's trial balance, only the companies' total)
+  if (companies.length) columns.push({ key: 'valoreTot', label: `${monthLabel} € — ${hasCVS ? 'Totale BdV' : 'Totale società'}`, numeric: true });
   // kept last on purpose: the account columns stay contiguous for a straight paste
   columns.push({ key: 'stato', label: 'Stato' });
   columns.push({ key: 'nota', label: 'Nota' });
@@ -1846,19 +1885,39 @@ function processBDV(wbTB, wbPL, db, companyWbs = {}) {
 const DG_SECTION_SIGN = { ATTIVO: 1, COSTI: 1, PASSIVO: -1, RICAVI: -1 };
 const DG_SECTION_QUADRO = { ATTIVO: 'SP', PASSIVO: 'SP', COSTI: 'CE', RICAVI: 'CE' };
 
-function readCompanyBridge(wb) {
-  const bridge = readSectionBridge(wb);
-  if (!bridge.error) return bridge;
-  const raccordo = readRaccordoBridge(wb);
-  if (raccordo && !raccordo.error) return raccordo;
+// The sheets to try for a company, best first: the ones named after it, then any
+// "Bridge" sheet, then the rest. A sheet named after another company is never read,
+// so one workbook with a sheet per company can go in every company's slot.
+function companySheets(wb, co) {
+  const names = wb.SheetNames;
+  const own = co && co.sheet ? names.filter(n => co.sheet.test(n)) : [];
+  const others = BDV_COMPANIES.filter(o => !co || o.id !== co.id);
+  const foreign = names.filter(n => !own.includes(n) && others.some(o => o.sheet.test(n)));
+  const rest = names.filter(n => !own.includes(n) && !foreign.includes(n));
+  return { order: [...own, ...rest.filter(n => /bridge/i.test(n)), ...rest.filter(n => !/bridge/i.test(n))], foreign };
+}
+
+function readCompanyBridge(wb, co) {
+  const { order, foreign } = companySheets(wb, co);
+  let problem = null;
+  for (const sheetName of order) {
+    for (const read of [readSectionBridge, readRaccordoBridge]) {
+      const parsed = read(wb, sheetName);
+      if (parsed && !parsed.error) return parsed;
+      if (parsed && parsed.error && !problem) problem = parsed.error;
+    }
+  }
+  if (problem) return { error: problem };
+  if (foreign.length && co) {
+    return { error: `nel file ci sono i fogli ${foreign.map(n => `«${n}»`).join(', ')}, ma nessuno per ${co.label}: qui va il suo bridge o raccordo.` };
+  }
   return {
-    error: raccordo && raccordo.error ? raccordo.error
-      : `non riconosco il file: serve il bridge (“Codice”, “Descrizione”, “Saldo …”, “Codice” NetSuite, sezioni ATTIVO / PASSIVO / COSTI / RICAVI) oppure il raccordo (“Codice consulente”, “Sezione”, “Saldo …”, “Conto NetSuite”). Fogli presenti: ${wb.SheetNames.join(', ')}.`,
+    error: `non riconosco il file: serve il bridge (“Codice”, “Descrizione”, “Saldo …”, “Codice” NetSuite, sezioni ATTIVO / PASSIVO / COSTI / RICAVI) oppure il raccordo (“Codice …”, “Sezione”, “Saldo …”, “Conto NetSuite”). Fogli presenti: ${wb.SheetNames.join(', ')}.`,
   };
 }
 
-function readSectionBridge(wb) {
-  const sheetName = findSheet(wb, ['Bridge']) || wb.SheetNames[0];
+// one sheet in the "Bridge" layout; null when the sheet is not laid out that way
+function readSectionBridge(wb, sheetName) {
   const rows = sheetRows(wb, sheetName);
 
   // locate the header row: the company's own "Codice"/"Descrizione" plus the NetSuite "Codice"
@@ -1881,9 +1940,7 @@ function readSectionBridge(wb) {
     hdr = i;
     break;
   }
-  if (hdr < 0 || cols.saldo < 0) {
-    return { error: `Nel foglio "${sheetName}" non trovo le intestazioni attese del bridge ("Codice", "Descrizione", "Saldo ...", "Codice" del conto NetSuite). Fogli disponibili: ${wb.SheetNames.join(', ')}` };
-  }
+  if (hdr < 0 || cols.saldo < 0) return null;
 
   const records = [];
   let section = null;
@@ -1923,48 +1980,47 @@ function readSectionBridge(wb) {
   return { records, sheetName, format: 'bridge' };
 }
 
-function readRaccordoBridge(wb) {
-  for (const sheetName of wb.SheetNames) {
-    const rows = sheetRows(wb, sheetName);
-    for (let i = 0; i < Math.min(rows.length, 20); i++) {
-      const cells = (rows[i] || []).map(norm);
-      const col = {
-        code: cells.findIndex(c => c.startsWith('codice')),
-        desc: cells.findIndex(c => c.startsWith('descrizione')),
-        sezione: cells.indexOf('sezione'),
-        saldo: cells.findIndex(c => c.startsWith('saldo')),
-        ns: cells.findIndex(c => c === 'conto netsuite'),
-        nsDesc: cells.findIndex(c => c === 'descrizione netsuite'),
-        aff: cells.findIndex(c => c.startsWith('affidabilit')),
-        note: cells.indexOf('note'),
-      };
-      if (col.code < 0 || col.sezione < 0 || col.saldo < 0 || col.ns < 0) continue;
-      const records = [];
-      for (let r = i + 1; r < rows.length; r++) {
-        const row = rows[r];
-        if (!row || cxBlank(row[col.code]) || typeof row[col.saldo] !== 'number') continue;
-        const sez = norm(row[col.sezione]);
-        const quadro = sez.startsWith('ce') ? 'CE' : sez.startsWith('sp') ? 'SP' : null;
-        if (!quadro) continue; // a total or a footnote, not an account
-        const nsDesc = col.nsDesc >= 0 && row[col.nsDesc] != null ? String(row[col.nsDesc]).trim() : null;
-        const note = col.note >= 0 && row[col.note] != null ? String(row[col.note]).trim() : null;
-        const toCreate = /da creare/i.test(nsDesc || '') || /conto da creare/i.test(note || '');
-        records.push({
-          quadro,
-          originCode: String(row[col.code]).trim(),
-          originDesc: col.desc >= 0 && row[col.desc] != null ? String(row[col.desc]).trim() : '',
-          value: row[col.saldo],
-          cvsCode: cxBlank(row[col.ns]) ? null : String(row[col.ns]).trim(),
-          cvsDesc: nsDesc ? nsDesc.replace(/\s*[–—-]\s*da creare\s*$/i, '').trim() : null,
-          note,
-          stream: null,
-          toCreate,
-          reliability: col.aff >= 0 && row[col.aff] != null ? String(row[col.aff]).trim() : null,
-        });
-      }
-      if (!records.length) return { error: `Nel foglio "${sheetName}" del raccordo non trovo righe di conto con sezione e saldo.` };
-      return { records, sheetName, format: 'raccordo' };
+// one sheet in the "Raccordo" layout; null when the sheet is not laid out that way
+function readRaccordoBridge(wb, sheetName) {
+  const rows = sheetRows(wb, sheetName);
+  for (let i = 0; i < Math.min(rows.length, 20); i++) {
+    const cells = (rows[i] || []).map(norm);
+    const col = {
+      code: cells.findIndex(c => c.startsWith('codice')),
+      desc: cells.findIndex(c => c.startsWith('descrizione')),
+      sezione: cells.indexOf('sezione'),
+      saldo: cells.findIndex(c => c.startsWith('saldo')),
+      ns: cells.findIndex(c => c === 'conto netsuite'),
+      nsDesc: cells.findIndex(c => c === 'descrizione netsuite'),
+      aff: cells.findIndex(c => c.startsWith('affidabilit')),
+      note: cells.indexOf('note'),
+    };
+    if (col.code < 0 || col.sezione < 0 || col.saldo < 0 || col.ns < 0) continue;
+    const records = [];
+    for (let r = i + 1; r < rows.length; r++) {
+      const row = rows[r];
+      if (!row || cxBlank(row[col.code]) || typeof row[col.saldo] !== 'number') continue;
+      const sez = norm(row[col.sezione]);
+      const quadro = sez.startsWith('ce') ? 'CE' : sez.startsWith('sp') ? 'SP' : null;
+      if (!quadro) continue; // a total or a footnote, not an account
+      const nsDesc = col.nsDesc >= 0 && row[col.nsDesc] != null ? String(row[col.nsDesc]).trim() : null;
+      const note = col.note >= 0 && row[col.note] != null ? String(row[col.note]).trim() : null;
+      const toCreate = /da creare/i.test(nsDesc || '') || /conto da creare/i.test(note || '');
+      records.push({
+        quadro,
+        originCode: String(row[col.code]).trim(),
+        originDesc: col.desc >= 0 && row[col.desc] != null ? String(row[col.desc]).trim() : '',
+        value: row[col.saldo],
+        cvsCode: cxBlank(row[col.ns]) ? null : String(row[col.ns]).trim(),
+        cvsDesc: nsDesc ? nsDesc.replace(/\s*[–—-]\s*da creare\s*$/i, '').trim() : null,
+        note,
+        stream: null,
+        toCreate,
+        reliability: col.aff >= 0 && row[col.aff] != null ? String(row[col.aff]).trim() : null,
+      });
     }
+    if (!records.length) return { error: `Nel foglio "${sheetName}" del raccordo non trovo righe di conto con sezione e saldo.` };
+    return { records, sheetName, format: 'raccordo' };
   }
   return null;
 }
@@ -3221,10 +3277,15 @@ export default function App() {
     setOutput(null); setError(null); setFilter(null);
   };
 
+  // BDV: CiviSmart's trial balance (its P&L per classe is optional), or the companies'
+  // balances alone. A P&L without its trial balance has nothing to split.
   const canProcess = useMemo(() => {
-    if (mode === 'bdv') return files.tb && files.pl;
+    if (mode === 'bdv') return !!files.tb || (!files.pl && BDV_COMPANIES.some(co => files[co.id]));
     return !!files.main;
   }, [mode, files]);
+  const processHint = mode === 'bdv' && files.pl && !files.tb
+    ? 'Il Profit & Loss per classe serve insieme al Bilancio di Verifica CVS: carica anche quello, oppure togli il P&L per elaborare solo i bilanci delle società.'
+    : null;
 
   // opts.month: CVS BU, the month column to fill when the viewer picks another one
   const handleProcess = useCallback(async (opts) => {
@@ -3238,8 +3299,8 @@ export default function App() {
         result = processCapEx(wb, db, base);
         if (!result.error) result.dbFileName = files.main.name;
       } else if (mode === 'bdv') {
-        const wbTB = await readWorkbookFromFile(files.tb);
-        const wbPL = await readWorkbookFromFile(files.pl);
+        const wbTB = files.tb ? await readWorkbookFromFile(files.tb) : null;
+        const wbPL = files.tb && files.pl ? await readWorkbookFromFile(files.pl) : null;
         const companyWbs = {};
         for (const co of BDV_COMPANIES) if (files[co.id]) companyWbs[co.id] = await readWorkbookFromFile(files[co.id]);
         result = processBDV(wbTB, wbPL, db, companyWbs);
@@ -3391,16 +3452,18 @@ export default function App() {
         <section className="upload-section">
           {mode === 'bdv' ? (
             <div className="upload-grid upload-grid-3">
-              <UploadSlot label="Bilancio di Verifica" hint="es. BDV_al_30_06.xls" accept={modeConfig.accept}
-                onFile={setFile('tb')} fileName={files.tb?.name} />
-              <UploadSlot label="Profit &amp; Loss per classe" hint="es. ProfitandLoss293.xls" accept={modeConfig.accept}
-                onFile={setFile('pl')} fileName={files.pl?.name} />
+              <UploadSlot label="Bilancio di Verifica CVS" hint="es. BDV_al_30_06.xls" accept={modeConfig.accept}
+                onFile={setFile('tb')} fileName={files.tb?.name} onClear={clearFile('tb')} />
+              <UploadSlot label="Profit &amp; Loss per classe CVS" hint="es. ProfitandLoss293.xls" accept={modeConfig.accept}
+                onFile={setFile('pl')} fileName={files.pl?.name} onClear={clearFile('pl')} />
               <UploadSlot label="Bilancio De Giorgi (facoltativo)" hint="la mappatura con il bridge dei conti NetSuite" accept=".xlsx,.xls"
                 onFile={setFile('dg')} fileName={files.dg?.name} onClear={clearFile('dg')} />
-              <UploadSlot label="Bilancio CSG (facoltativo)" hint="la mappatura con il bridge dei conti NetSuite" accept=".xlsx,.xls"
+              <UploadSlot label="Bilancio CSG (facoltativo)" hint="il bridge o il raccordo con i conti NetSuite" accept=".xlsx,.xls"
                 onFile={setFile('csg')} fileName={files.csg?.name} onClear={clearFile('csg')} />
               <UploadSlot label="Raccordo Vesuvio (facoltativo)" hint="il raccordo dei conti del consulente con NetSuite" accept=".xlsx,.xls"
                 onFile={setFile('ves')} fileName={files.ves?.name} onClear={clearFile('ves')} />
+              <UploadSlot label="Bilancio San Mango (facoltativo)" hint="il bridge o il raccordo con i conti NetSuite" accept=".xlsx,.xls"
+                onFile={setFile('sm')} fileName={files.sm?.name} onClear={clearFile('sm')} />
             </div>
           ) : mode === 'capex' ? (
             <div className="upload-grid">
@@ -3428,6 +3491,13 @@ export default function App() {
             {processing ? 'Elaborazione…' : 'Elabora'}
           </button>
         </section>
+
+        {processHint && (
+          <p className="process-hint" role="status">
+            <Info size={14} />
+            <span>{processHint}</span>
+          </p>
+        )}
 
         {error && (
           <div className="error-box">
@@ -3801,6 +3871,14 @@ body { margin: 0; background: var(--ink); color: var(--paper); }
   border-radius: 8px; padding: 12px 14px; font-size: 12.5px; margin-bottom: 18px; line-height: 1.5;
 }
 .error-box svg { flex-shrink: 0; margin-top: 2px; }
+
+/* why Elabora is not available yet, right under the uploads */
+.process-hint {
+  display: flex; align-items: flex-start; gap: 8px; max-width: 760px;
+  margin: -10px 0 18px; padding: 10px 12px; border-radius: 8px;
+  background: var(--signal-dim); color: var(--signal); font-size: 12.5px; line-height: 1.5;
+}
+.process-hint svg { flex-shrink: 0; margin-top: 2px; }
 
 .summary-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
 .summary-stat {
